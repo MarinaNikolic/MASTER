@@ -1,0 +1,20 @@
+\documentclass[a4paper]{article}
+\usepackage{polyglossia}
+
+    % osnovni jezik je srpski, ćirilicom
+    \setdefaultlanguage[script=Cyrillic]{serbian}
+    % drugi jezik je engleski
+    \setotherlanguage{english}
+    % osnovni font je CMU Serif
+    % da bi Small Caps radili ćirilicom, potrebno je koristiti se trikovima (privremeno isključiti srpski jezik)
+    \setmainfont[SmallCapsFont={CMU Serif},SmallCapsFeatures={Language=Default,Letters=SmallCaps}]{CMU Serif}
+
+    % odmah postavljamo srpski jezik (i pre \begin{document})
+    \selectlanguage{serbian}
+
+\begin{document}
+Ovo je proba. Lišće. \textsc{Лишће}. Лишће.
+\begin{english}
+This is a test.
+\end{english}
+\end{document}
