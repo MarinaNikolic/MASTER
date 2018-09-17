@@ -1,0 +1,2 @@
+1. WX graphical enviroment module
+	sudo apt-get install python-wxtools
