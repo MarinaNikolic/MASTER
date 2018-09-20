@@ -1,0 +1,232 @@
+% Format teze zasnovan je na paketu memoir
+% http://tug.ctan.org/macros/latex/contrib/memoir/memman.pdf ili
+% http://texdoc.net/texmf-dist/doc/latex/memoir/memman.pdf
+% 
+% Prilikom zadavanja klase memoir, navedenim opcijama se podešava 
+% veličina slova (12pt) i jednostrano štampanje (oneside).
+% Ove parametre možete menjati samo ako pravite nezvanične verzije
+% mastera za privatnu upotrebu (na primer, u b5 varijanti ima smisla 
+% smanjiti 
+\documentclass[12pt,oneside]{memoir} 
+
+
+
+
+% Paket koji definiše sve specifičnosti master rada Matematičkog fakulteta
+\usepackage[latinica,biblatex]{matfmaster} 
+%
+% Podrazumevano pismo je ćirilica.
+%   Ako koristite pdflatex, a ne xetex, sav latinički tekst na srpskom jeziku
+%   treba biti okružen sa \lat{...} ili \begin{latinica}...\end{latinica}.
+%
+% Opicija [latinica]:
+%   ako želite da pišete latiniciom, dodajte opciju "latinica" tj.
+%   prethodni paket uključite pomoću: \usepackage[latinica]{matfmaster}.
+%   Ako koristite pdflatex, a ne xetex, sav ćirilički tekst treba biti
+%   okružen sa \cir{...} ili \begin{cirilica}...\end{cirilica}.
+%
+% Opcija [biblatex]:
+%   ako želite da koristite reference na više jezika i umesto paketa
+%   bibtex da koristite BibLaTeX/Biber, dodajte opciju "biblatex" tj.
+%   prethodni paket uključite pomoću: \usepackage[biblatex]{matfmaster}
+%
+% Opcija [b5paper]:
+%   ako želite da napravite verziju teze u manjem (b5) formatu, navedite
+%   opciju "b5paper", tj. prethodni paket uključite pomoću: 
+%   \usepackage[b5paper]{matfmaster}. Tada ima smisla razmisliti o promeni
+%   veličine slova (izmenom opcije 12pt na 11pt u \documentclass{memoir}).
+%
+% Naravno, opcije je moguće kombinovati.
+% Npr. \usepackage[b5paper,biblatex]{matfmaster}
+
+
+
+
+
+
+
+% Datoteka sa literaturom u BibTex tj. BibLaTeX/Biber formatu
+\bib{marina-master}
+
+% Ime kandidata na srpskom jeziku (u odabranom pismu)
+\autor{Marina R. Nikolić}
+% Naslov teze na srpskom jeziku (u odabranom pismu)
+\naslov{Prikupljanje i prikaz podataka o izvršavanju programa}
+% Godina u kojoj je teza predana komisiji
+\godina{2018}
+% Ime i afilijacija mentora (u odabranom pismu)
+\mentor{dr Milena \textsc{Vujošević Janičić}, docent\\ Univerzitet u Beogradu, Matematički fakultet}
+% Ime i afilijacija prvog člana komisije (u odabranom pismu)
+\komisijaA{dr Filip \textsc{Marić}, vanredni profesor\\ Univerzitet u Beogradu, Matematički fakultet}
+% Ime i afilijacija drugog člana komisije (u odabranom pismu)
+\komisijaB{dr Milan \textsc{Banković}, docent\\ Univerzitet u Beogradu, Matematički fakultet}
+% Ime i afilijacija trećeg člana komisije (opciono)
+% \komisijaC{}
+% Ime i afilijacija četvrtog člana komisije (opciono)
+% \komisijaD{}
+% Datum odbrane (odkomentarisati narednu liniju i upisati datum odbrane ako je poznat)
+% \datumodbrane{}
+
+% Apstrakt na srpskom jeziku (u odabranom pismu)
+\apstr{tekst apstrakta rada
+}
+
+% Ključne reči na srpskom jeziku (u odabranom pismu)
+\kljucnereci{profajliranje, pokrivenost koda, GCC, GCOV}
+
+\begin{document}
+% ==============================================================================
+% Uvodni deo teze
+\frontmatter
+% ==============================================================================
+% Naslovna strana
+\naslovna
+% Strana sa podacima o mentoru i članovima komisije
+\komisija
+% Strana sa posvetom (u odabranom pismu)
+\posveta{Mentoru za predanost i pomoć, firmi za resurse, porodici i prijateljima za podršku}
+% Strana sa podacima o disertaciji na srpskom jeziku
+\apstrakt
+% Sadržaj teze
+\tableofcontents
+
+% ==============================================================================
+% Glavni deo teze
+\mainmatter
+% ==============================================================================
+
+% ------------------------------------------------------------------------------
+\chapter{Uvod}
+% ------------------------------------------------------------------------------
+
+
+\begin{enumerate}
+\item kratak opis o čemu će biti reči u daljem tekstu
+\item iako vidim da je popularno po master radovim ada se piše po poglavljima ovde (tipa, u poglavlju X je opisano to i to), ja bih uvod radije sročila kao pričicu koja prati rad
+\item ovde bih dodala na samom početku i na samom kraju značaj teme kao takve i naravno značaj mog doprinosa ( na kraju zbog efekta)
+\end{enumerate}
+
+
+% ------------------------------------------------------------------------------
+\chapter{Profajliranje, pokrivenost koda i kako sad radi GCC}
+\label{chp:profajliranje}
+% ------------------------------------------------------------------------------
+
+\section{Profajliranje i pokrivenost koda}
+
+Ovde će biti dosta citata. Trenutna literatura pokriva jedan rad \cite{Introduction} i jedan website \cite{GCOV}.
+
+\begin{enumerate}
+\item Ovo je čisto teorijski deo - uvod u tematiku i pojmovi bez kojih se ne može dalje
+\item Manje više bi ostao kao u radu za Etran, možda malo proširen i preformulisan
+\item Počeo bi podelom na statičku i dinamičku analizu, i naravno na kraju bi se priča svela na objašnjenje najužih pojmova profajliranje, instrumentalizacija i pokrivenost koda.
+\item Zbog promene naslova, koja nažalost dosta utiče na suštinu, ja bih ovde dodala kratki hint za sledeća dva poglavlja, ali bez mnogo objašnjenja (npr. Podaci se mogu prikupiti na kraju ili tokom rada. E, ovo drugo je ono što nema, pa ja dodajem)
+\end{enumerate}
+
+\section{Postojeća rešenja u okviru GCCa}
+
+
+\begin{enumerate}
+\item Opis kako radi GCC instrumentalizacija, libcoverage i GCOV.
+\item Ovde je dobar trenutak da se pomenu mane postojeceg statickog pristupa
+\end{enumerate}
+
+
+% ------------------------------------------------------------------------------
+\chapter{Zacetak ideje i trnoviti putevi}
+\label{chp:ideja}
+% ------------------------------------------------------------------------------
+
+\section{Ideja – dinamicki pristup}
+
+\begin{enumerate}
+\item Uvod u moj projekat
+\item Šta je ovde drukčije i bolje
+\item Samo teorija, bez detalja kako tačno radi šta
+\end{enumerate}
+
+\section{Razmatrana rešenja}
+
+\begin{enumerate}
+\item Dva puta koja su se predamnom bejaše otvorila – da li napadati GCOV alat ili menjati biblioteku
+\item Kako i zašto sam odabrala ovo što sam odabrala
+\item Lepa pričica da se pokaže da se ipak ulagalo malo mozga u projekat
+\end{enumerate}
+
+
+% ------------------------------------------------------------------------------
+\chapter{Implementacija i analiza}
+\label{chp:sprovodenje}
+% ------------------------------------------------------------------------------
+
+\section{Implementacija}
+
+\begin{enumerate}
+\item Biblioteka
+\item GUI (signali za prikupljanje podataka, generisanje izvestaja)
+\end{enumerate}
+
+\section{Demonstracija i uputstvo za upotrebu}
+
+\begin{enumerate}
+\item primer rada biblioteke I GUI-ja sa slikama
+\item dobar moment da se naglasi da rad ima primenu na bilo koji kod
+\item ne znam jel smem pominjati digitalnu i ko ga sad koristi
+\end{enumerate}
+
+\section{Performanse}
+
+\begin{enumerate}
+\item da li smo postigli cilj
+\item da li možemo isto što i pre, pa i više
+\item memorija I bezbednost – test sa Valgrindom
+\item složenost – vremenska i prostorna
+\item jednostavnost upoterebe
+\item ne bi bilo loše ovde pomenuti LLVM i njihovu runtime instrumentalizaciju 
+%(LLVM jede memoriju ko lud, jer podatke dampuje u fajlove ali i ugrađuje u samu binariju koja zato naraste mnogo i pravi probleme, dok GCC sve dampuje u fajlove pa je binarija mala).
+\end{enumerate}
+
+\section{Primena}
+
+\begin{enumerate}
+\item Gde bi sve ovo moglo da radi
+\item Ne znam koliko smem odavati na čemu je testirano I na čemu radi
+\item Ideja: Ako bi se ovakav jedan alat unapredio I ugradio npr u pejsmejker da signalizira da nešto ne radi kako treba, to što je runtime prikupljanje moglo bi nekome spasiti život
+\end{enumerate}
+
+
+% ------------------------------------------------------------------------------
+\chapter{Zaključak}
+% ------------------------------------------------------------------------------
+
+
+\begin{enumerate}
+\item Šta je urađeno
+\item Koji je značaj toga što je urađeno (gde sad radi – onliko koliko smem da kazem)
+\item Šta bi još moglo da se uradi:
+\begin{enumerate}
+\item Ideja: Ako bi se ovakav jedan alat unapredio I ugradio npr u pejsmejker da signalizira da nešto ne radi kako treba, to što je runtime prikupljanje moglo bi nekome spasiti život
+\item Moze mala komparacija sa LLVMom – tipa da se analizira sta je dobro i da se malo unapredi po ugledu na LLVM
+\end{enumerate}
+\end{enumerate}
+
+
+% ------------------------------------------------------------------------------
+% Literatura
+% ------------------------------------------------------------------------------
+\literatura
+
+% ==============================================================================
+% Završni deo teze i prilozi
+\backmatter
+% ==============================================================================
+
+% ------------------------------------------------------------------------------
+% Biografija kandidata
+\begin{biografija}
+  \textbf{Marina Nikolić} (\emph{Sombor,
+    17. decembar 1992. }) je ... 
+\end{biografija}
+% ------------------------------------------------------------------------------
+
+\end{document}
