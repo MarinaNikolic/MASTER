@@ -16,8 +16,6 @@ import os.path, dircache
 import re
 #Scrolling pannel support
 import wx.lib.scrolledpanel
-#System calls support
-from subprocess import call
 
 #support for reading .gcno files
 #Choosing workspace via workspace_choosing_button won't work otherwise
