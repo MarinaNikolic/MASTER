@@ -3,6 +3,9 @@
 /* Checksum of a program */
 static gcov_unsigned_t gcov_crc32;
 
+/*Indicator if dump is completed in this run*/
+static int gcov_dump_complete = 0;
+
 /* Length of gcda or gcno file name, it helps allocation */
 static size_t gcov_max_filename = 0;
 
@@ -468,7 +471,7 @@ void gcov_read_summary (struct gcov_summary *summary)
    summaries separate.  */
 void drew_coverage(){
 
-	printf("Testing... \n");
+	printf("Data dump initiated... \n");
 
   struct gcov_info *gi_ptr;
   struct gcov_summary this_program;
@@ -481,6 +484,13 @@ void drew_coverage(){
   int gcov_prefix_strip = 0;
   size_t prefix_length;
   char *gi_filename, *gi_filename_up;
+
+
+  /* Prevent the counters from being dumped a second time in same run
+      otherwise we would data would be multiplyed in report */
+  if (gcov_dump_complete)
+    return;
+
 
   memset (&all, 0, sizeof (all));
 
@@ -929,5 +939,9 @@ gcov_write_block ((word_number));
 /* Free memory */
 free(gcov_var.buffer);
 fclose(gcov_var.file);
+
+/*Mark dump as completed*/
+gcov_dump_complete = 1;
+printf("Data dump completed... \n");
 
 }
