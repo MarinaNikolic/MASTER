@@ -1,0 +1,139 @@
+diff --git a/capstone b/capstone
+--- a/capstone
++++ b/capstone
+@@ -1 +1 @@
+-Subproject commit 22ead3e0bfdb87516656453336160e0a37b066bf
++Subproject commit 22ead3e0bfdb87516656453336160e0a37b066bf-dirty
+diff --git a/configure b/configure
+index de768e2..7368bfb 100755
+--- a/configure
++++ b/configure
+@@ -389,6 +389,7 @@ tcg_interpreter="no"
+ bigendian="no"
+ mingw32="no"
+ gcov="no"
++runtime_gcov="no";
+ gcov_tool="gcov"
+ EXESUF=""
+ DSOSUF=".so"
+@@ -1002,6 +1003,8 @@ for opt do
+   ;;
+   --enable-gcov) gcov="yes"
+   ;;
++  --enable-runtime-gcov) runtime_gcov="yes"
++  ;;
+   --static)
+     static="yes"
+     LDFLAGS="-static $LDFLAGS"
+@@ -1676,6 +1679,7 @@ Advanced options (experts only):
+   --with-coroutine=BACKEND coroutine backend. Supported options:
+                            ucontext, sigaltstack, windows
+   --enable-gcov            enable test coverage analysis with gcov
++  --enable-runtime-gcov     enable runtime coverage analysis with gcov
+   --gcov=GCOV              use specified gcov [$gcov_tool]
+   --disable-blobs          disable installing provided firmware blobs
+   --with-vss-sdk=SDK-path  enable Windows VSS support in QEMU Guest Agent
+@@ -5675,6 +5679,10 @@ write_c_skeleton
+ if test "$gcov" = "yes" ; then
+   CFLAGS="-fprofile-arcs -ftest-coverage -g $CFLAGS"
+   LDFLAGS="-fprofile-arcs -ftest-coverage $LDFLAGS"
++elif test "$runtime_gcov" = "yes" ; then
++  CFLAGS="-fprofile-arcs -ftest-coverage -g -DRUNTIME_GCOV $CFLAGS"
++  LDFLAGS="-L\$(BUILD_DIR)/code_coverage_lib -lcoverage $LDFLAGS"
++  LDFLAGS="\$(BUILD_DIR)/code_coverage_lib/coverage_registration.o $LDFLAGS"
+ elif test "$fortify_source" = "yes" ; then
+   CFLAGS="-O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $CFLAGS"
+ elif test "$debug" = "no"; then
+@@ -6128,6 +6136,7 @@ echo "crypto afalg      $crypto_afalg"
+ echo "GlusterFS support $glusterfs"
+ echo "gcov              $gcov_tool"
+ echo "gcov enabled      $gcov"
++echo "runtime gcov enabled $runtime_gcov"
+ echo "TPM support       $tpm"
+ echo "libssh2 support   $libssh2"
+ echo "TPM passthrough   $tpm_passthrough"
+@@ -7023,6 +7032,11 @@ if test "$gcov" = "yes" ; then
+   echo "CONFIG_GCOV=y" >> $config_host_mak
+   echo "GCOV=$gcov_tool" >> $config_host_mak
+ fi
++if test "$runtime_gcov" = "yes" ; then
++  echo "CONFIG_GCOV=y" >> $config_host_mak
++  echo "GCOV=$gcov_tool" >> $config_host_mak
++fi
++
+ 
+ if test "$docker" != "no"; then
+     echo "HAVE_USER_DOCKER=y" >> $config_host_mak
+diff --git a/dtc b/dtc
+--- a/dtc
++++ b/dtc
+@@ -1 +1 @@
+-Subproject commit 88f18909db731a627456f26d779445f84e449536
++Subproject commit 88f18909db731a627456f26d779445f84e449536-dirty
+diff --git a/linux-user/exit.c b/linux-user/exit.c
+index 14e94e2..8e053a1 100644
+--- a/linux-user/exit.c
++++ b/linux-user/exit.c
+@@ -19,17 +19,22 @@
+ #include "qemu/osdep.h"
+ #include "qemu.h"
+ 
++#ifndef RUNTIME_GCOV
+ #ifdef CONFIG_GCOV
+ extern void __gcov_dump(void);
+ #endif
++#endif
+ 
+ void preexit_cleanup(CPUArchState *env, int code)
+ {
+ #ifdef TARGET_GPROF
+         _mcleanup();
+ #endif
++
++#ifndef RUNTIME_GCOV
+ #ifdef CONFIG_GCOV
+         __gcov_dump();
+ #endif
++#endif
+         gdb_exit(env, code);
+ }
+diff --git a/linux-user/signal.c b/linux-user/signal.c
+index e2c0b37..dbf5a84 100644
+--- a/linux-user/signal.c
++++ b/linux-user/signal.c
+@@ -642,6 +642,10 @@ static inline void rewind_if_in_safe_syscall(void *puc)
+ }
+ #endif
+ 
++#ifdef RUNTIME_GCOV
++extern void coverage_handler(int signo);
++#endif
++
+ static void host_signal_handler(int host_signum, siginfo_t *info,
+                                 void *puc)
+ {
+@@ -666,6 +670,24 @@ static void host_signal_handler(int host_signum, siginfo_t *info,
+     sig = host_to_target_signal(host_signum);
+     if (sig < 1 || sig > TARGET_NSIG)
+         return;
++
++     
++     int message_int = info->si_value.sival_int;
++     printf("Recieved signal: %d with message: %d\n",host_signum, message_int);
++     //Checking if signal and message corespond to predefind coverage dumping comunication
++     if (host_signum == SIGUSR1 && message_int == 45949){
++#ifdef RUNTIME_GCOV
++       // informing about begining of coverage dump procedure and invoking coverage handler that will do the dumping
++	printf("Program %s is about to dump coverage data\n", program_invocation_short_name);
++	coverage_handler(host_signum);
++       //Informing about end of coverage dump procedure
++	printf("Program %s has finished dumping coverage data\n", program_invocation_short_name);
++	// reseting value of message since it is alredy being processed.
++	info->si_value.sival_int = 0;
++	return;
++#endif
++    }
++
+     trace_user_host_signal(env, host_signum, sig);
+ 
+     rewind_if_in_safe_syscall(puc);
