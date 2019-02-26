@@ -343,36 +343,118 @@ U okviru novog alata za vizuelni prikaz podataka o pokrivenosti koda, pored unap
 Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, novi vizuelni alat pruža mogućnost i prikupljanja podataka, odnosno slanja signala \kod{SIGUSR1} željenom instrumentalizovanom programu. Time je ukupna funkcionalnost instrumentalizacije dostupna u okviru jednog grafičkog korisničkog interfejsa. Kao što je već napomenuto, korišćenje signala na \strano{Windows} operativnom sistemu nije podržano, zbog čega je u ovom slučaju za korišćenje alata preduslov imati već kreirane fajlove \strano{gcda}. Isti princip važi i ukoliko korisnički program predefiniše signal \kod{SIGUSR1}.
 
 % ------------------------------------------------------------------------------
-\chapter{Implementacija i analiza}
-\label{chp:sprovodenje}
+\chapter{Implementacija}
+\label{chp:implementacija}
 % ------------------------------------------------------------------------------
 
-\section{Implementacija}
-
+Implementacija unapređenja prikupljanja i prikaza podataka iz izvršavanja programa prevedenog programskim prevodiocem \strano{gcc} je podeljena u dve zasebne, implementaciono nezavisne celine:
 \begin{enumerate}
-\item Biblioteka
-\item GUI (signali za prikupljanje podataka, generisanje izvestaja)
+\item Implementacija dinamičke biblioteke, nezavisne od \strano{gcc}-a, čija osnovna funkcionalnost predstavlja prikupljanje podataka iz izvršavanja programa pre završetka njegovog rada.
+\item Implementacija novog grafičkog alata za prikaz podataka, u kome je bezbedna i iskustvom validirana osnova, alat \strano{gcov}, nadograđena jednostavnim, preglednim, korisnički prilagođenom interfejsom sa povišenom informativnošću.
 \end{enumerate}
+U narednom tekstu biće detaljno opisane implementacije obe celine.
 
-\section{Demonstracija i uputstvo za upotrebu}
 
+\section{Implementacija biblioteke}
+
+Implementacija biblioteke \strano{libcoverage} je izvršena u programskom jeziku C, po uzoru na postojeću bibloteku \strano{libgcov}, koja predstavlja podrazumevanu biblioteku za prikupljanje podataka iz izvršavanja programa u okviru programskog prevodioca \strano{gcc}. Osnovna funkcionalnost biblioteke \strano{libgcov} se vrši u okviru funkcije: \kod{gcov\_exit}. Njen algoritam se sastoji iz iterativnih i dubinskih prolazaka kroz instrumentalizacione strukture (prikazane na slici \ref{fig:instr}) u cilju prikupljanja podatka i iz procesa upisivanja tih podataka u fajlove sa ekstenzijom \strano{gcda} u posebnom formatu, utvrđenom zajedničkim standardim biblioteke \strano{libgcov} i alata \strano{gcov}. Za prvobitne inicijalizacije, koje je potrebno izvršiti pre poziva funkcije \kod{gcov\_exit}, kao i za upravljanje samim pozivom, zadužena je funkcija \kod{\_\_gcov\_init}. Jedinstveni poziv funkcije \kod{\_\_gcov\_init} na samom početku izvršavanja instrumentalizovanog programa obavlja se nezavisno od koda biblioteke \strano{libgcov}. K\^{o}d poziva se ugrađuje direktno u binarni k\^{o}d programa u toku prevođenja, uz uslov prisustva flegova za instrumentalizaciju. Stoga je k\^{o}d ove dve funkcije najpre izdvojen da, uz određene modifikacije, predstavlja bazu nove biblioteke. 
+
+Važno je napomenuti da se k\^{o}d biblioteke \strano{libgcov} razlikuje u zavisnosti od verzije prevodioca \strano{gcc}. U prethodnom poglavlju, predstavljena je šira slika, pre svega funkcionalnosti, bez implementacionih detalja. Stoga, u tom trenutku, nije bilo potrebno ograničavati se na konkretnu verziju. Princip koji se trenutno opisuje je karatkeristika isključivo verzija starijih od 5.1.0. Implementacija biblioteke \strano{libcoverage} je rađena po uzoru na k\^{o}d prevodioca verzije: 4.8.0. Pojedine specifične funkcionalnosti su preuzimane iz ranijih ili kasnijih verzija, u cilju optimizacije ili osamostaljivanja. 
+
+Ostatak koda koji je preuzet iz \strano{gcc}-a, bilo u celosti, parcijalno ili uz modifikacije, dodat je isključivo u cilju definisanja nerazrešenih simbola prilikom osamostaljivanja biblioteke od prevodioca. Dakle, tokom prve faze implementacije je, na osnovu iscrpne analize strukture i funkcionalnosti onih modula prevodioca \strano{gcc}, koji omogućavaju prikupljanje podataka iz izvršavanja programa, kreirana samoodrživa, ali još uvek ne funkcionalna baza nove biblioteke. 
+
+Druga faza implementacije obuhvatala je potrebne modifikacije u cilju postizanja prikupljanja podataka iz izvršavanja programa u toku njegovog rada. Rad alata \strano{gcov}, koji rezultuje finalnim izveštajima, nije zavistan od izvršavanja programa, već samo od dostupnosti ulaznih argumenata: izvornog koda i fajlova \strano{gcno} i \strano{gcda}. Kako su fajlovi \strano{gcno} dostupni već nakon prevođenja izvornog koda do objektnih fajlova, za ostvarenje željene funkcionalnosti je potrebno i dovoljno modifikovati trenutak nastajanja fajlova \strano{gcda}. Uslovljenost završetkom rada programa, je suštinski uzrokovana time što se u okviru funkcije \kod{\_\_gcov\_init}, za čije je bezuslovno izvršavanje dovoljno prevesti k\^{o}d sa instrumentalizacionim flegovima, poziva funkcija \kod{gcov\_exit} kao argument \kod{atexit} funkcije standardne biblioteke \strano{stdlib}. Eliminacijom ovog poziva, postignut je prvi korak ka prikupljanju podataka u proizvoljnom trenutku rada programa. Nakon ovog koraka, naziv \kod{gcov\_exit} je postao neprikladan i konfuzan, pa je izvršena njegova korekcija. U novoj bibliteci \strano{libcoverage}, funkcija \kod{gcov\_exit} je preimenovana u \kod{drew\_coverage}. Na odabir naziva uticale su isključivo estetske i lične preferencije autora. Drugi korak predstavlja pružanje mogućnosti korisniku da sam odabere trenutak u kome će se poziv funkcije izvršiti. Zaglavlje \strano{coverage.h}, koje takođe ulazi u izgradnju nove biblioteke, sadrži deklaraciju funkcije: \kod{drew\_coverage}. Stoga je dovoljno da se u korisnčkom kodu, na željenoj lokaciji, uključi ovo zaglavlje ili funkcija navede kao eksterna, a zatim regularno pozove. Razrešavanje simbola nastalih ovim pozivom, biće obavljeno u fazi linkovanja biblioteke \strano{libcoverage.so}.
+
+Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, implementirana je i mogućnost poziva korišćenjem signala \strano{SIGUSR1}. Za ostvarivanje ove pogodnosti, neophodno je navesti u fazi linkovanja dodatni objektni fajl: \strano{coverage\_registration.o}. K\^{o}d čijim prevođenjem nastaje prikazan je na slici \ref{fig:registrator}. Pisan je u programskom jeziku C i u celosti se nalazi u okviru fajla:  \strano{coverage\_registration.c}. Sastoji se iz dve funckije: \kod{coverage\_handler} i \kod{coverage\_signal\_registry}. Prva funkcija predstavlja alternativni \strano{signal-handler} za \strano{SIGUSR1}, u okviru koga se izvršava poziv funkcije: \kod{drew\_coverage}. Druga funkcija je zadužena za registrovanje funkcije \kod{coverage\_handler} kao \strano{signal-handler} za \strano{SIGUSR1}, a korišćenjem \kod{\_\_attribute\_\_((constructor))} principa, vezana je za sam početak izvršavanja instrumentalizovanog programa. 
+Korišćenje ove metode je opciono i zavisi isključivo od želje korisnika i mogućnosti korišćenja signala datog programa. Ukoliko operativni sistem ne podržava \strano{POSIX} signale ili korisnički k\^{o}d predefiniše signal \strano{SIGUSR1}, ovaj princip se ne može koristiti. Funkcionalnost je implementirana kao opciona i u statičkoj varijanti isključivo iz bezbednosnih razloga. Korišćenje \kod{\_\_attribute\_\_((constructor))} principa u dinamičkoj biblioteci je veoma opasno i stoga u velikoj većini slučajeva nije podržano od strane prevodioca. 
+
+
+\begin{figure}[!ht]
+  \centering
+  \label{fig:registrator}
+  \includegraphics[width=\textwidth]{img/coverage-registration-code.png}
+  \caption{Izvorni k\^{o}d u okviru fajla: \strano{coverage\_registration.c}}
+\end{figure}
+
+
+Pored osnovnih izmena, izvršene su i dve manje modifikacije funkcije za prikupljanje podataka i kreiranje fajlova gcda. Konstanta \kod{GCOV\_LOCKED}, definisana pretprocesorskom direktivom, a korišćena u cilju sprečavanja paralelizacije rada funkcije \strano{gcov\_exit} iz biblioteke \strano{libgcov} i alata \strano{gcov}, izbačena je iz upotrebe. U novom pristupu, paralelizacija procesa prikupljanja i obrade podataka je, iako bezbednosni izazov, poželjna osobina. Međutim, celokupni k\^{o}d koji koristi globalnu promenljivu \kod{gcov\_dump\_complete}, zadužen za sprečavanje višestrukog izbacivanja podataka o izvršavanju programa, kao i sama promenljiva nisu eliminisani. Bez alternativnog mehanizma odbrane, eliminacija ove funkcionalnosti bi dovela do netačnih vrednosti u izveštaju, odnosno vrednosti multipliciranih brojem poziva funkcije za ispis. Prebacivanje odgovornosti premeštanja starih fajlova \strano{gcda} pre novog poziva funkcije, nije prihvatljivo rešenje sa stanovišta bezbednosti i jednostavnosti upotrebe, dok bi automatsko naknadno prepakivanje fajlova \strano{gcda} narušilo kompatibilnost sa postojećim interfejsom trenutne implementacije. 
+
+Cilj treće faze implementacije predstavlja uklanjanje zavisnosti biblioteke od programskog prevodioca \strano{gcc}. Prvi korak ka tom cilju, obavljen je još u toku prve faze, dodavanjem određenih funkcija i konstanti iz koda prevodioca, neophodnih za definisanje simbola, koji su u fazi linkovanja označeni kao nerazrešeni. U cilju logičkog osamostaljivanja i sprečavanja višestruke definisanosti simbola, funkcije koje programski prevodilac \strano{gcc} koristi i van procesa instrumentalizacije, su zamenjene sličnim, funkcionalno kompatibilnim, varijantama. Primer je funkcija: \kod{gcc\_assert}, koja je zamenjena varijantom preuzetom iz verzije 5.0, pod nazivom: \kod{gcov\_nonruntime\_assert}. Ukinuta je zavisnost od definisanosti promenljive \kod{IN\_LIBGCOV}, koja uslovljava prikupljanje podataka postojećom bibliotekom \strano{libgcov}, na kraju izvršavanja programa. 
+
+Ukidanje zavisnosti biblioteke od prevodioca, odnosno omogućavanje njenog samostalnog prevođenja, prouzrokovalo je da biblioteka izgubi informaciju o verziji prevodioca. Različitost implementacije instrmentalizacije i prikupljanja podataka kroz verzije prevodioca \strano{gcc}, morala se prevazići ograničavanjem na konkretnu verziju ili dodatnim modifikacijama. Kako prva opcija suštinski poništava efekat nezavisnosti biblioteke, doneta je odluka da se, u okviru četvrte faze implementacije, izvrše dodatna prilagođavanja koda biblioteke u cilju postizanja što veće multiverzionalnosti. U okviru izmena koje su objavljene pod verzijom 4.7.0. izvršen je i veći redizajn, ne samo procesa prikupljanja podataka, već i samog formata instrumentalizacionih struktura. Prilagođavanje biblioteke radu sa strukturama definisanim na stari način, iziskivalo bi izgradnju potpuno nove biblioteke, što je u datom trenutku bio nepotreban napor. Takođe, aktuelna verzija \strano{gcc}-a u vreme ove implementacije je bila 6.2. što predstavlja gornje ograničenje multiverzionalnosti biblioteke \strano{libcoverage.so}. Kasnijom analizom utvrđena je kompatibilnost i sa ostalim podizdanjima u okviru izdanja 6. U cilju izgradnje jedinstvene biblioteke za sve verzije \strano{gcc}-a, počevši od 4.7.0. i zaključno sa 6.5.0., najpre su iz koda eliminisane sve provere verzije prevodioca, alata \strano{gcov} i fajlova \strano{gcno} i \strano{gcda}. Uveden je novi mehanizam određivanja verzije koji osigurava isključivo poklapanje verzije u fajlovima \strano{gcno} i \strano{gcda}, neophodno za rad alata \strano{gcov}. 
+Globane vrednosti unutar same biblioteke koje su zavisne od verzije prevodioca, prilagođavaju se verziji pretprocesorskim direktivama. Prilagođavanje količine brojača koji se koriste za instrumentalizaciju, definisane promenljivom \kod{GCOV\_COUNTERS} prikazano je na slici \ref{fig:brojaci}.
+\\
+
+\begin{figure}[!ht]
+  \centering
+  \label{fig:brojaci}
+  \includegraphics[width=\textwidth]{img/GCOV_COUNTERS.png}
+  \caption{Definisanje količine brojaća u zavisnosti od verzije prevodioca}
+\end{figure}
+
+Poslednja faza implementacije obuhvata izmene vršene u cilju vremenske i prostorne optimizacije. U starijim verzijama prevodioca \strano{gcc}, računanje kontrolne sume se obavljalo svega jednom, na samom početku izvršavanja instrumentalizovanog programa, u okvuru funkcije \kod{\_\_gcov\_init}. Od verzije 4.7.0., uveden je novi algoritam, po kome se kontrolna suma računa više puta, u toku čitanja podataka iz instrumentalizacionih struktura, posebno za svaki objektni fajl programa. Eventualna oštećenja podataka će sa dovoljno velikom verovatnoćom biti detektovana u globalnog kontrolnoj sumi, pa računanje različite kontrolne sume za svaki element strukture \kod{gcov\_info} troši više vremena nego što doprinosi. Stoga su, u novoj biblioteci, kontrolne sume implementirane po uzoru na verziju 4.6.0. Dodatna optimizacija postignuta je redukovanjem broja sistemskih poziva za ispisivanje sadržaja u fajl \strano{gcda}. Umesto velikog broja manjih poziva sistemskog poziva \strano{write} za svaku 32-obitnu vrednost oznake ili brojača, vrši se jedinstveni poziv za celokupan sadržaj jednog fajla \strano{gcda}. Kako se bafer za privremeno čuvanje ne reciklira, već samo proširuje, ovim se nije povećala prostorna složenost. Dodatni memomorijski prostor je potreban samo za skladištenje jedne dodatne globalne promenljive koja sadrži broj trenutno neispisanih vrednosti. Sa druge strane, procesoru je prepuštena odluka o veličini pojedinačnog bloka koji će se upisati, što je na sistemu najoptimalnija moguća vrednost. Računanje vrednosti histograma je takođe izbačeno iz trenutne implementacije biblioteke \strano{libcoverage}, pošto se vrednosti nisu koristile ni u jednom dokumentovanom slučaju upotrebe. Prisustvo histograma je zadržano isključivo u definiciji odgovarajuće instrumentalizacione strukture, u cilju kompatibilnosti sa prevodiocem. Manja ušteda prostora je ostvarena i uvođenjem pravolinijskog prolaska kroz strukture. Umesto alociranja privremenog pokazivača na međustrukturu, kao što je prikazano u gorenjem delu slike \ref{fig:pristup}, korišćen je pravolinijski pristup prikazan u donjem delu iste slike. 
+\\ 
+\begin{figure}[!ht]
+  \centering
+  \label{fig:pristup}
+  \includegraphics[width=0.8\textwidth]{img/cut_the_middleman.png}
+  \caption{Pristup instrumentalitacionim strukturama}
+\end{figure}
+
+
+\section{Implementacija grafičkog alata}
+
+Implementacija novog grafičkog alata za prikaz podataka iz izvršavanja programa, pod nazivom: \strano{code\_coverage\_viewer}, izvršena je u programskom jeziku \strano{Python}, korišćenjem posebnog modula za grafičku podršku: \strano{wxPython}. Osnovna uloga novog alata jeste da predstavlja jednostavni, korisniku prilagođen omotač za celokupan proces prikupljanja i prikaza podataka u toku izvršavanja programa. 
+
+Grafički korisnički interfejs se sastoji iz dve celine: kontrolne i prezentacione, i jedne linije menija. Celine su implemenatciono predstavljene sa dva \strano{skroll}-ujuća panela (\kod{wx.Panel}), dobijena pomoću vertikalnog splitera ekrana (\kod{wx.SplitterWindow}), dok je za kreiranje menija korišćena klasa \kod{wx.MenuBar}. Na slici \ref{fig:GUI1} je dat prikaz grafičkog korisničkog interfejsa nakon pokretanja. Osnovne komponente, čije će osobine i funkconalnosti biti objašnjenjene u  nastavku, vidljive su i dostupne odmah po pokretanju. 
+
+\begin{figure}[!ht]
+  \centering
+  \label{fig:GUI1}
+  \includegraphics[width=\textwidth]{img/GUI_1.png}
+  \caption{Pristup instrumentalitacionim strukturama}
+\end{figure}
+
+
+Kontrolna celina se proteže levom stranom interfejsa, zauzimajući okvirno jednu trećinu ukupnog prostora. Sadrži deset komponenti, raspoređenih u jedinstvenu kolonu. Na samom vrhu se nalazi dugme za odabir radnog direktorijuma: \strano{Choose workspace}, kreirano korišćenjem klase \kod{wx.Button}. Klikom na ovo dugme, otvara se novi prozor, instanca klase \kod{wx.DirDialog}, kao na slici \ref{fig:GUI2} Pomoću njega se, navigacijom kroz sistem datoteka, odabira koreni direktorijum projekta ili pojedinačne komponente, za koju korisnik želi podatke o pokrivenosti. Nakon odabira, prozor za dijalog se zatvara i vrši se ažuriranje drvolike strukture koja oponaša strukturu odabranog direktorijuma. Više detalja o njoj, biće u nastavku teksta. Ukoliko se u njemu direktno ili rekurzivno nalaze već generisani izveštaji, oni će biti adekvatno prikazani u drvolikoj strukturi i za njih će važiti celokupna dalja funkcionalnost alata. Sledeće tri komponente u koloni čine tekstualno polje za unos imena procesa, labela za pružanje informacije šta u to polje treba uneti i dugme za kreiranje fajlova \strano{gcda}. Tekstualno polje je instanca klase za prikaz dinamičkog teksta, pod nazvom: \kod{wx.TextCtrl}, i služi za unos imena procesa kome treba poslati signal da prikupi podatke o svom dotadašnjem izvršavanju i upiše ih u fajlove sa ekstenzijom \strano{gcda}. Ukoliko se na sistemu izvršava više programa sa tim imenom, signal će biti poslat svakom posebno. Sama funkcionalnost korišćenja komande \strano{kill} za slanje signala \strano{SIGUSR1} u cilju prikupljanja podataka, odnosno pozivanja funkcije \kod{drew\_coverage} iz biblioteke \strano{libgcov}, se ne okida upisom imena, već klikom na dugme za kreiranje fajlova \strano{gcda}, pod nazivom \strano{Dump coverage data}. Ovo dugme je takođe instanca klase \kod{wx.Button}, kao i prethodno, dok je za sve labele korišćena klasa za prikaz statičkog teksta, pod nazivom: \kod{wx.StaticText}. Funkcionalnost ove tri komponente je dostupna samo korisnicima \strano{Unix} ili \strano{Unix}-olikih sistema, koji su pored instrumentalizacionih flegova i biblioteke \strano{libcoverage}, svoj program preveli i koristeći objektni fajl \strano{coverage\_registration.o}, i nisu predefinisali signal \strano{SIGUSR1}. Ograničenje je napomenuto u specifikaciji alata, kao i u oviru \strano{Help}-a. Izvršavanje sistemske komanade \kod{kill -10 <pid>}, kao i svih ostalih sistemskih komandi je implementirano pomoću funkcije \kod{system}, modula \kod{os}. Ovo je najjednostavniji princip, bez bezbednosnih izazova, koji u potpunosti zadovoljava potrebe novog grafičkog alata. Naredne dve komponente predstavljaju interfejs ka funkcionalnosti generisanja izveštaja alatom \strano{gcov} i kontrole njihovih prikazivanja. Dugme: \strano{Generate gcov and function files} okida rekurzivnu pretragu radnog direktorijuma i poziv alata \strano{gcov} za sve pronađene fajlove \strano{gcda}. Odgovarajući fajl \strano{gcno} se nalazi na istoj lokaciji gde i \strano{gcda}, dok se putanja do fajla sa izvornim kodom dobija parsiranjem sadržaja fajla \strano{gcno}. Ovim postupkom se kreiraju dva tipa izveštaja: 
 \begin{enumerate}
-\item primer rada biblioteke I GUI-ja sa slikama
-\item dobar moment da se naglasi da rad ima primenu na bilo koji kod
-\item ne znam jel smem pominjati digitalnu i ko ga sad koristi
+\item Standardni izveštaji sa ekstenzijom \strano{gcov}, koji sadrže kvantitativne podatke za svaku izvršnu liniju koda
+\item Funkcijski izveštaji sa ekstenzijom \strano{fun}, koji sadrže podatke o pokrivenosti pojedinačnih funkcija i ukupnu pokrivenost fajla izvornog koda
 \end{enumerate}
+Kreiranje oba tipa izveštaja se vrši jedinstvenim pozivom alata, sa jednom dodatnom opcijom: \kod{-f}. Alat \strano{gcov} sam generiše standardni izveštaj, dok sadržaj funkcijskog izveštaja predstavlja preusmereni ispis na standardni izlaz. Svi izveštaji se smeštaju u drvoliku strukturu, lociranu ispod dugmeta za njihovo generisanje, koja je implementirana kao instanca klase \kod{wx.TreeCtrl}. Celokupni sadržaj se briše, a drvolika struktura se ponovo izgrađuje, popunjavajući se novim podacima. Ista procedura se vrši, kao što je već napomenuto, i prilikom promene radnog direktorijuma. Ova struktura ima dvostruku ulogu. Pored intuitivnog prikaza imena i lokacije svakog izveštaja, u vidu drveta koje oponaša strukturu radnog direktorijuma, služi i kao kontrolna jedinica za prikaz sadržaja u desnoj celini grafičkog korisničnog interfejsa. Prikaz sadržaja željenog izveštaja se okida jednim klikom na njegovo ime. Na samom dnu leve celine nalazi se skup od četiri komponente koje služe za određivanje i prikaz ukupne pokrivenosti koda u okviru radnog direktorijuma: jedno dugme i tri kompozitne strukture. Dugme \strano{Generate total project coverage} okida računanje tri podatka: ukupan broj izvršnih linija, ukupan broj izvršenih linija do trenutka kreiranja fajlova \strano{gcda} i procenat koji označava ukupnu pokrivenost koda u okviru odabranog radnog direktorijuma. Svaka od tri kompozitne strukture sadrži po jedno tekstualno polje za prikaz jednog od tako izračunatih podataka i labelu za objašnjenje sadržaja tekstualnog polja. Sam proces računanja zahteva parsiranje standardnih izveštaja u cilju ekstrakcije kvantitativnih podataka izvršenosti pojedinačnih linija i može biti veoma vremenski zahtevan. Stoga nije izvršavan u okviru procesa generisanja izveštaja, već kao zasebna funkcionalnost. Ukupna vremenska složenost je veća pri ovakvom pristupu, ali je vreme potrebno za dobijanje prvih podataka prilično redukovano. U toku izračunavanja ukupne pokrivenosti, korisniku su na raspolaganju pojedinačni izveštaji za pregledanje i analizu. Prikaz grafičkog korisničkog interfejsa nakon generisanja izveštaja i računanja ukupne pokrivenosti dat je na slici \ref{fig:GUI3}.
 
-\section{Performanse}
+\begin{figure}[!ht]
+  \centering
+  \label{fig:GUI2}
+  \includegraphics[width=\textwidth]{img/GUI_2.png}
+  \caption{Pristup instrumentalitacionim strukturama}
+\end{figure}
 
-\begin{enumerate}
-\item da li smo postigli cilj
-\item da li možemo isto što i pre, pa i više
-\item memorija I bezbednost – test sa Valgrindom
-\item složenost – vremenska i prostorna
-\item jednostavnost upoterebe
-\item ne bi bilo loše ovde pomenuti LLVM i njihovu runtime instrumentalizaciju 
-%(LLVM jede memoriju ko lud, jer podatke dampuje u fajlove ali i ugrađuje u samu binariju koja zato naraste mnogo i pravi probleme, dok GCC sve dampuje u fajlove pa je binarija mala).
-\end{enumerate}
+\begin{figure}[!ht]
+  \centering
+  \label{fig:GUI3}
+  \includegraphics[width=\textwidth]{img/GUI_3.png}
+  \caption{Pristup instrumentalitacionim strukturama}
+\end{figure}
+
+Prezentaciona celina se proteže desnom stranom interfejsa, zauzimajući okvirno dve trećine ukupnog prostora. Sadrži svega jednu komponentu, koja služi za prikaz sadržaja konkreknog izveštaja, odabranog pomoću drvolike strukture leve celine. Implementirana je kao instanca klase za prikaz dinamičkog teksta: \kod{wx.TextCtrl}, čime se pruža dodatna mogućnost kopiranja sadržaja, menjanja ili brisanja. Prikaz izveštaja koji sadrže ne-\strano{ASCI} karaktere, omogućen je korišćenjem unapređene azbuke koju nudi paket: \kod{ISO-8859-1}. Postavljen je kao podrazumevani paket, kako bi se unapredila i upotrebna vrednost funkcionalnosti odabira radnog direktorijuma, ali i omogućilo čitanje fajlova \strano{gcno}. 
+
+Linija menija je implementirana korišćenjem klase \kod{wx.MenuBar}. Sadrži ime alata i jedno dugme, tipa \kod{wx.Menu}, pod nazivom \strano{File}. Jednim klikom na dugme \strano{File}, pojavljuje se lista sa dve opcije: \strano{Help} i \strano{Quit}. Odabiranjem opcije za pomoć, na centru ekrana se pojavljuje novi prozor, klase \kod{wx.PopupWindow}, kao na slici \ref{fig:GUI4}. Prozor se sastoji iz jedinsvenog panela, čiju celokupnu površinu zauzima tekstualno polje, statičke prirode, sa kratim uputstvom za upotrebu alata. Prozor je mobilan, što je ostvareno pomoću preračunavanja kordinata, a nakon korišćenja, može se zatvoriti desnim klikom na bilo koju tačku njegove površine. Opcija \strano{Quit} služi za zatvaranje glavnog prozora alata.
+
+\begin{figure}[!ht]
+  \centering
+  \label{fig:GUI4}
+  \includegraphics[width=\textwidth]{img/GUI_4.png}
+  \caption{Pristup instrumentalitacionim strukturama}
+\end{figure}
+ 
+U okviru specifikacije alata, kao i u okviru \strano{Help}-a, detaljno je opisana pravilna upotreba alata. Za korisnike koji nemaju naviku da čitaju dokumentacije, specifikacije i pomoćne sadržaje, osmišljen je mehanizam podsvesnog navođenja. Naime, redosled komponenti kontrolne celine je osmišljen i implementiran na način koji ima za cilj podsvesno navođenje korisnika na pravilni redosled upotrebe. Akcije donjih skupova komponenti su u velikoj meri uslovljene akcijama onih iznad, što uslovljava korišćenje "odozgo na gore". Poslednji stepen zaštite od nepravilne upotrebe nalazi se na nivou pojedinačne komponente i onemogućava njen rad, ukoliko potrebni uslovi nisu ispunjeni. Ispunjenost uslova se određuje stanjem radnog direktorijuma i programa, a ne izvršenosti funkcionalnosti alata, čime su pokriveni i slučajevi parcijalne upotrebe alata, kao na primer, pregledanje već generisanih izveštaja. Takođe, tom prilikom se korisniku otvara i mali prozor za dijalog, instanca klase \kod{wx.MessageDialog}, pomoću koga se informiše o konkretnoj grešci u proceduri i dobija savet o adekvatnom sledećem koraku.
+
+
+% ------------------------------------------------------------------------------
+\chapter{Analiza korektnosti i performasi}
+\label{chp:testiranje}
+% ------------------------------------------------------------------------------
 
 \section{Primena}
 
