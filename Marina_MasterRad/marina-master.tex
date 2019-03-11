@@ -205,17 +205,18 @@ Raznovrsnost navedenih primera pokayuje veliki značaj i potencijal pokrivenosti
 % ------------------------------------------------------------------------------
 
 
-Poznatiji prevodioci, poput \strano{GCC}-a \cite{GCC}, \strano{ICC}-a \cite{ICC} i \strano{Clang}-a \cite{CLANG} u određenoj meri poseduju ugrađenu podršku određivanju pokrivenosti koda. Projekat LLVM trenutno prednjači u raznovrsnosti, jer pruža i mogućnost informisanja o pokrivenosti u toku izvršavanja. Sa druge strane, autorima programa koji se odluče za programski prevodilac \strano{GCC}, te informacije su dostupne tek nakon izvršavanja programa, što je kompenzovano znatno boljim performasama, pre svega u pogledu memorijske zahtevnosti. Prikupljanje i obrada podataka o pokrivenosti koda u toku izvršavanja programa korišćenjem tehnika \strano{GCC}-a, kombinuje dobru ideju projekta LLVM i dobre tehnike prevodioca \strano{GCC}, čime prednjači i u oblasti mogućnosti i u oblasti performansi. U okviru projekta na kome je utemeljen ovaj rad, izvršena je detaljna analiza postojećih mogućnosti u okviru prevodioca \strano{GCC} i implementirana je podrška za prikupljanje podataka u toku izvršavanja, kao i novi, unapređeni alat za njihov vizuelni prikaz.
+Poznatiji prevodioci, poput \strano{GCC}-a \cite{GCC}, \strano{ICC}-a \cite{ICC} i \strano{Clang}-a \cite{CLANG} u određenoj meri poseduju ugrađenu podršku određivanju pokrivenosti koda. Projekat LLVM trenutno prednjači u raznovrsnosti, jer pruža i mogućnost informisanja o pokrivenosti u toku izvršavanja. Sa druge strane, autorima programa koji se odluče za programski prevodilac \strano{GCC}, te informacije su dostupne tek nakon izvršavanja programa, što je kompenzovano znatno boljim performasama, pre svega u pogledu memorijske zahtevnosti. Prikupljanje i obrada podataka o pokrivenosti koda u toku izvršavanja programa korišćenjem tehnika \strano{GCC}-a, kombinuje dobru ideju projekta LLVM i dobre tehnike prevodioca \strano{GCC}, čime prednjači i u oblasti mogućnosti i u oblasti performansi. U okviru projekta na kome je utemeljen ovaj rad, izvršena je detaljna analiza postojećih mogućnosti u okviru prevodioca \strano{GCC} i implementirana je podrška za prikupljanje podataka u toku izvršavanja, kao i novi, unapređeni interfejs za njihov vizuelni prikaz.
 
 
 \section{Trenutna implementacija u okviru \strano{GCC}-a}
 
 
-Programski prevodilac \strano{GCC} sadrži ugrađenu podršku određivanju pokrivenosti koda, integrisanu u statičku biblioteku za prikupljanje podataka po imenu \strano{libgcov} i alat za vizuelni prikaz podataka \strano{gcov} \cite{GCOV, CodeCoverage}.
+Programski prevodilac \strano{GCC} sadrži ugrađenu podršku određivanju pokrivenosti koda, integrisanu u statičku biblioteku za prikupljanje podataka po imenu \strano{libgcov} i alat za vizuelni prikaz podataka \strano{gcov} \cite{GCOV, CodeCoverage}. 
 
-Metapodaci izvršavanja čuvaju se u deljenoj memoriji programa, u listi posebnih, globalno definisanih struktura tipa \kod{gcov\_info}, čija se inicijalizacija ugrađuje u binarni k\^{o}d prevođenjem sa posebnim flegovima za instrumentalizaciju: \kod{-fprofile-arcs -ftest-coverage}. Flegovi se navode tokom prevođenja izvornog koda do objektnog fajla, a simboli koji se njima unose razrešavaju se kasnije u fazi linkovanja.  
+Metapodaci izvršavanja čuvaju se u deljenoj memoriji programa, u listi posebnih, globalno definisanih struktura tipa \kod{gcov\_info}, čija se inicijalizacija ugrađuje u binarni k\^{o}d prevođenjem sa posebnim flegovima za instrumentalizaciju: \\  
+\kod{-fprofile-arcs} i \kod{-ftest-coverage}. Flegovi se navode tokom prevođenja izvornog koda do objektnog fajla, a simboli koji se njima unose razrešavaju se kasnije u fazi linkovanja.  
 
-Pored ubacivanja instrukcija u binarni k\^{o}d programa, prisustvo flegova za instrumentalizaciju uslovljava obavljanje još jedne važne aktivnosti, a to je kreiranje dodatnog fajla, odmah pored njemu odgovarajućeg objektnog fajla, sa ekstenzijom \strano{gcno} (\strano{GCov NOtes file}). To je relativno mali, binarni fajl, koji sadrži sve neophodne statičke informacije o strukturi izvornog koda čijim prevođenjem nastaje. Njegova glavna uloga jeste da predstavlja strukturni kostur budućeg finalnog proizvoda alata, koji će se kasnije nadograditi podacima dobijenim dinamički u toku izvršavanja. Format fajla \strano{gcno} je utvrđen zajedničkim standardom \strano{GCC}-a i alata \strano{gcov}, koji je specijalizovan i za njegovo tumačenje. Redukcija veličine je postignuta maksimalnim stepenom kompresije podataka. Korišćenje specijalnih oznaka, korišćenje pozicije kao interpretacije podatka, kao i pažljivo odabrani minimalni skup potrebnih informacija o strukturi, samo su neke od tehnika kompresije korišćenih u cilju maksimalne štednje memorije. Posebno je važno napomenuti da je čuvanje podataka o strukturi u vidu eksternih binarnih fajlova osnovni uzrok boljih memorijskih performansi \strano{GCC} instrumentalizacije u odnosu na \strano{Clang}-ovo profajliranje, pomenute na kraju prethodnog poglavlja, jer umanjuje rizik od eksplozije veličine samog programa.
+Pored ubacivanja instrukcija u binarni k\^{o}d programa, prisustvo flegova za instrumentalizaciju uslovljava obavljanje još jedne važne aktivnosti, a to je kreiranje dodatnog fajla, odmah pored njemu odgovarajućeg objektnog fajla, sa ekstenzijom \strano{gcno} (\strano{GCov NOtes file}). To je relativno mali, binarni fajl, koji sadrži sve neophodne statičke informacije o strukturi izvornog koda čijim prevođenjem nastaje. Njegova glavna uloga jeste da predstavlja strukturni kostur budućeg finalnog proizvoda alata, koji će se nadograditi podacima dobijenim dinamički u toku izvršavanja. Format fajla \strano{gcno} je utvrđen zajedničkim standardom \strano{GCC}-a i alata \strano{gcov}, koji je specijalizovan i za njegovo tumačenje. Redukcija veličine je postignuta maksimalnim stepenom kompresije podataka. Korišćenje specijalnih oznaka, korišćenje pozicije kao interpretacije podatka, kao i pažljivo odabrani minimalni skup potrebnih informacija o strukturi, samo su neke od tehnika kompresije korišćenih u cilju maksimalne štednje memorije. Posebno je važno napomenuti da je čuvanje podataka o strukturi u vidu eksternih binarnih fajlova osnovni uzrok boljih memorijskih performansi \strano{GCC} instrumentalizacije u odnosu na \strano{Clang}-ovo profajliranje, pomenute na kraju prethodnog poglavlja, jer umanjuje rizik od eksplozije veličine samog programa.
 Uvećanje izvršnog fajla do veće vrednosti od memorijske količine koja je za njega predviđena na sistemu, može dovesti do nepravilnosti u radu, a kako memorijski zahtevniji instrumentlizovani program se ponaša drugačije od regularnog, rezultati testiranja neće odražavati realno stanje. Naročito, na sistemima sa veoma ograničenim memorijskim prostorom, \strano{GCC} instrumentalizacija je jedina moguća.
 
 Definicije i međusobne veze najvažnijih instrumenatalizacionih struktura prikazani na slici \ref{fig:instr}. 
@@ -223,41 +224,43 @@ Svaka struktura tipa \kod{gcov\_info} iz liste, odgovara tačno jednom instrumen
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:instr}
   \includegraphics[width=\textwidth]{img/instr_strukture.png}
   \caption{Instrumentalizacione strukture i njihove međusobne veze}
+  \label{fig:instr}
 \end{figure}
 
 Rešenje koje je trenutno implementirano u \strano{GCC}-u, upravo iz tih razloga, sadrži jednog "posrednika" između instrumentalizovanog programa i eksternih alata, a to je \strano{libgcov}. Biblioteka, po svojoj prirodi, se ugrađuje u program i time postaje deo njega, što joj daje ekskluzivno pravo pristupa njegovoj deljenoj memoriji. Njen osnovni zadatak je ekstrakcija podataka iz strukture \kod{gcov\_info} i njihovo konvertovanje u oblik pogodan za obradu eksternim alatom. Statička funkcija \kod{gcov\_at\_exit} preuzima vrednosti brojača, računa sumarne i statističke podatke i sve zajedno upisuje u posebni binarni fajl sa ekstenzijom \strano{gcda} (\strano{GCov DAta file}) u unapred utvrđenom formatu i na unapred utvrđenoj lokaciji. Optimalnost veličine se i ovde postiže primenom sličnih tehnika za kompresiju, kao u slučaju fajla \strano{gcno}. Generiše se uvek pored objetktnog fajla kome odgovara, u slučaju da fajl sa istim imenom i ekstenzijom već ne postoji na toj lokaciji. U slučaju višestrukog pokretanja programa, vrednosti iz predhodnih izvršavanja već se nalaze u fajlu \strano{gcda}, te se on samo ažurira, a za sumiranje starih i novih podataka, zadužena je druga funkcija po imenu \kod{\_\_gcov\_merge\_add\_}. Stoga, za zanemarivanje starih podataka, neophodno je premestiti ili ukloniti prethodni fajl \strano{gcda} pre novog pokretanja.  
 
 Na kraju izvršavanja instrumentalizovanog programa, svi podaci potrebni za informisanje razvojnog tima o pokrivenosti njihovog koda, nalaze se na fajl sistemu i mogu se pakovati, premeštati i skladištiti. To je veoma korisna činjenica, jer pruža nove mogućnosti kombinovanja rezultata različitih merenja. Ukoliko postoji potreba da se neki test prekine na određeno vreme i započne novi, fajlovi \strano{gcda} prvog testa se mogu spakovati na drugu lokaciju, čime će se za drugi test generisati novi, i ponovo prebaciti pored objektnih pred nastavak prvog testa. Za ekonomično skladištenje mogu se koristiti i kompresovane arhive ili eksterni memorijski mediji. Međutim, njihova osnovna funkcija je da predstavljaju ulazne parametre za alat \strano{gcov}, koji na osnovu njih kreira tekstualni izveštaj, pogodniji za interpretaciju od strane razvojnog tima.
 
-Za generisanje jednog izveštaja, potrebno je alatu \strano{gcov} proslediti u vidu argumentata: jedan izvorni fajl, jedan odgovarajući strukturni fajl: \strano{gcno} i jedan fajl sa vrednostima brojača: \strano{gcda}. Poseban tekstualni fajl sa ekstenzijom \strano{gcov} se kreira za svaki instrumentalizovani fajl izvornog koda. Izveštaj se sastoji od celokupnog sadržaja izvornog koda, uz dodatak jedne vrednosti ispred svake izvršne linije, koja predstavlja broj puta koliko se ta linija izvršavala. Ukoliko se linija nije izvršila nijednom, ispred nje se stavlja posebna oznaka sastavljana od pet simbola tarabice. Prvih nekoliko linija izveštaja rezervisano je za statističke podatke o imenima fajlova od kojih je kreiran, dok se na standardni izlaz štampa najvažnija vrednost: odnos broja izvršenih linija i ukupnog broja linija, odnosno pokrivenost koda. Na slici \ref{fig:report}, prikazan je primer osnovnog izveštaja, koji se generiše pozivom alata \strano{gcov} bez dodatnih opcija. Korišćenjem opcija u pozivu alata, izveštaj se može unaprediti i podacima o blokovima, kao na slici \ref{fig:report1}, granama, kao na slici \ref{fig:report2} i slično.
+Za generisanje jednog izveštaja, potrebno je alatu \strano{gcov} proslediti u vidu argumentata: jedan izvorni fajl, jedan odgovarajući strukturni fajl sa ekstenzijom \strano{gcno} i jedan fajl sa vrednostima brojača sa ekstenzijom \strano{gcda}. Poseban tekstualni fajl sa ekstenzijom \strano{gcov} se kreira za svaki instrumentalizovani fajl izvornog koda. Izveštaj se sastoji od celokupnog sadržaja izvornog koda, uz dodatak jedne vrednosti ispred svake izvršne linije, koja predstavlja broj puta koliko se ta linija izvršavala. Ukoliko se linija nije izvršila nijednom, ispred nje se stavlja posebna oznaka sastavljana od pet simbola tarabice. Prvih nekoliko linija izveštaja rezervisano je za statističke podatke o imenima fajlova od kojih je kreiran, dok se na standardni izlaz štampa najvažnija vrednost: odnos broja izvršenih linija i ukupnog broja linija, odnosno pokrivenost koda. Na slici \ref{fig:report}, prikazan je primer osnovnog izveštaja, koji se generiše pozivom alata \strano{gcov} bez dodatnih opcija. Korišćenjem opcija u pozivu alata, izveštaj se može unaprediti i podacima o granama, blokovima i slično. 
 
+Opcijom -b, izveštaj se obogaćuje statističkim podacima o funkcijama, osnovnim blokovima, granama i pozivima, kao na slici \ref{fig:report1} Osnovni blok predstavlja jedinicu koda koja se izvršava pravolinijski, odnosno ne sadrži grananja u svojoj unutrašnjosti.
+Ispred definicije svake funkcije, ispisuje se koliko puta je funkcija pozvana, koliko puta je regularno završena, kao i procenat izvršenih osnovnih blokova u njenoj unutrašnjosti.
+Nakon završne linije svakog osnovnog bloka, ispisuju se informacije o pokrivenosti poslednjeg grananja ili poziva tog bloka. Za svaku konkretnu granu, prikazuje se procenat odabira te grane u odnosu na ukupan broj prolazaka kroz celo grananje. U slučaju poziva, ta pokrivenost je uglavnom 0 ili 100\%, odnosno izvršeno/neizvršeno. 
+
+Dodavanjem opcije -a, alatu se sugeriše generisanje podataka o pokrivenosti za svaki osnovni blok ponaosob i njihov ispis ispod poslednje naredbe u okviru tog bloka, kao na slici \ref{fig:report2}. Ukoliko je linija sadržana u više pojedinačnih blokova kao poslednja, sadržaće više podataka o pokrivenosti, tačno jedan za svaki takav blok. 
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:report}
   \includegraphics[width=\textwidth]{img/report_simple.png}
   \caption{Osnovni izveštaj koji generiše \strano{gcov}}
+  \label{fig:report}
 \end{figure}
-
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:report1}
   \includegraphics[width=\textwidth]{img/report_branch.png}
   \caption{Izveštaj koji generiše alat \strano{gcov}    sa opcijom -b}
+  \label{fig:report1}
 \end{figure}
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:report2}
   \includegraphics[width=\textwidth]{img/report_block.png}
   \caption{Izveštaj koji generiše alat        \strano{gcov} sa opcijom -a}
+  \label{fig:report2}
 \end{figure}
-
-
 
 \section{Kritika trenutne implementacije u okviru \strano{GCC}-a }
 
@@ -287,7 +290,7 @@ Biblioteka \strano{libgcov} je u okviru \strano{GCC}-a implementirana kao stati�
 \subsection{Korisnički interfejs}
 
 
-Prikaz u vidu pojedinačnih izveštaja za svaki fajl izvornog koda, takođe poseduje određene mane. Svaki izveštaj se nalazi na posebnoj lokaciji u okviru direktorijuma projekta, što otežava njihov pregled kao celine. Dodatne informacije, poput onih o pokrivenosti pojedinačnih funkcija, koje se dobijaju dodavanjem opcija u poziv alata, kao i vrednost pokrivenosti fajla, se ne nalaze u okviru izveštaja, već samo ispisa na standardni izlaz, što uzrokuje potencijalni gubitak tih informacija. Vrednost pokrivenosti koda čitavog projekta se ne izračunava, čime je krajnji rezultat oslabljen za još jednu bitnu informaciju. Potreba za prevazilaženjem ovih mana je uticala na formiranje ideje o novom alatu za vizuelni prikaz \strano{gcov} statistike, koji je izgrađen u okviru ovog projekta. 
+Prikaz u vidu pojedinačnih izveštaja za svaki fajl izvornog koda, takođe poseduje određene mane. Svaki izveštaj se nalazi na posebnoj lokaciji u okviru direktorijuma projekta, što otežava njihov pregled kao celine. Dodatne informacije, poput onih o pokrivenosti pojedinačnih funkcija, koje se dobijaju dodavanjem opcija u poziv alata, kao i vrednost pokrivenosti fajla, se ne nalaze u okviru izveštaja, već samo ispisa na standardni izlaz, što uzrokuje potencijalni gubitak tih informacija. Vrednost pokrivenosti koda čitavog projekta se ne izračunava, čime je krajnji rezultat oslabljen za još jednu bitnu informaciju. Potreba za prevazilaženjem ovih mana je uticala na formiranje ideje o novom interfejsu za vizuelni prikaz \strano{gcov} statistike, koji je izgrađen u okviru ovog projekta. 
 
 
 \section{Unapređenje programskog prevodioca \strano{GCC}}
@@ -318,7 +321,7 @@ Detaljna analiza gore navedenog pristupa, kao i postojeće logike instrumentaliz
 
 Implementiranje podrške za prikupljanje podataka u toku izvršavanja u vidu biblioteke, otvorilo je mogućnost optimizacije performansi i održavanja "u hodu", ukidanjem zavisnosti od programskog prevodioca i prelaskom na dinamičko linkovanje. Osnovna ideja predstavlja zamenu statičke biblioteke \strano{libgcov} njenim dinamičkim, funkcionalnim pandanom, nezavisnim od infrastrukture \strano{GCC}-a. 
 
-Dinamičko linkovanje znatno poboljšava vremensku i prostornu složenost \cite{staVSdinLINK}. Operativni sistem može smestiti k\^{o}d dinamičke biblioteke u segmente \strano{ROM}-a koje deli više procesa, čime se omogućava jedinstvenost koda u okviru memorije. Time se prostorna složenost sa linerane, svodi na konstantnu vrednost količine memorije potrebne za smeštanje jedne biblioteke, ukidanjem zavisnosti složenosti od broja procesa. Instrukcije biblioteke se ne kopiraju u izvršnu verziju, čime se smanjuje i potreban prostor za skladištenje instrumentalizovanih programa. Dodatne tehnike poput tabela indirekcije i lenjog povezivanja simbola omogućavaju i vremensku uštedu. Sa druge strane, upotreba deljene biblioteke olakšava i procese njene implementacije, testiranja i održavanja. Otklanjanje greške u kodu biblioteke ili potencijana kasnija nadogradnja njenih mogućnosti, ne uslovljavaju ponovno prevođenje svih instrumentalizovanih programa. Prevođenje većih sistema iziskuje dosta vremena, pa ova ušteda pravi značajnu razliku. 
+Dinamičko linkovanje znatno poboljšava vremensku složenost u fazi prevođenja, kao i prostornu složenost \cite{staVSdinLINK}. Operativni sistem može smestiti k\^{o}d dinamičke biblioteke u segmente \strano{ROM}-a koje deli više procesa, čime se omogućava jedinstvenost koda u okviru memorije. Time se prostorna složenost sa linerane, svodi na konstantnu vrednost količine memorije potrebne za smeštanje jedne biblioteke, ukidanjem zavisnosti složenosti od broja procesa. Instrukcije biblioteke se ne kopiraju u izvršnu verziju, čime se smanjuje i potreban prostor za skladištenje instrumentalizovanih programa. Dodatne tehnike poput tabela indirekcije i lenjog povezivanja simbola omogućavaju i vremensku uštedu. Sa druge strane, upotreba deljene biblioteke olakšava i procese njene implementacije, testiranja i održavanja. Otklanjanje greške u kodu biblioteke ili potencijana kasnija nadogradnja njenih mogućnosti, ne uslovljavaju ponovno prevođenje svih instrumentalizovanih programa. Prevođenje većih sistema iziskuje dosta vremena, pa ova ušteda pravi značajnu razliku. 
 
 Ukidanje zavisnosi biblioteke za instrumentalizaju od programskog prevodioca omogućava dodatne olakšice kasnijem održavanju, jer nije potrebno ponovno prevoditi celokupni \strano{GCC} nakon svake izmene u kodu biblioteke, a i promena verzije prevodioca ne iziskuje promene u instrumentalizaciji. Ova izmena nema negativan uticaj na performanse, jer se zamenom čuva ukupni skup simbola i instrukcija. 
 
@@ -338,9 +341,9 @@ Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, impleme
 
 Cilj ovog unapređenja jeste omogućiti jednostavan, intuitivan, vizuelni prikaz podataka iz izvršavanja istrumentalizovanog programa. \kod{Gcov} izveštaji i statistički podaci se prikazuju odvojeno od kodova, binarnih i izvršnih fajlova, kako bi se olakšalo i ubrzalo pronalaženje i pregledanje. Prikaz u vidu drveta putanja omogućava brz i efikasan pregled, bez narušavanja modularnosti projekta. Pored osnovnih \strano{gcov} izveštaja, u okviru drveta su dostupni i izveštaji koji sadrže statistiku po funkcijama. 
 
-U okviru novog alata za vizuelni prikaz podataka o pokrivenosti koda, pored unapređenja pregleda, implementirano je i nekoliko novih funkcionalnosti. Neki od važnih podataka, poput ukupne pokrivenosti projekta, modula ili programa, ne izračunavaju se pozivom postojećeg alata, zbog njegove ograničenosti na pojedinačni fajl izvornog koda. \strano{Gcov} se može pozvati i sa više argumenta, ali se svaki obrađuje pojedinačno. Alat kreiran u okviru ovog projekta, omogućava i prikaz ukupne statistike. Generisanje \strano{gcov} izveštaja za sve izvorne fajlove projekta je dosta olakšano. Umesto višestrukih poziva alata i pozicionaranja u okviru direktorijuma projekta, celokupna funkcionalnost se izvršava jednim klikom. 
+U okviru novog grafičkog interfejsa za vizuelni prikaz podataka o pokrivenosti koda, pored unapređenja pregleda, implementirano je i nekoliko novih funkcionalnosti. Neki od važnih podataka, poput ukupne pokrivenosti projekta, modula ili programa, ne izračunavaju se pozivom postojećeg alata, zbog njegove ograničenosti na pojedinačni fajl izvornog koda. \strano{Gcov} se može pozvati i sa više argumenta, ali se svaki obrađuje pojedinačno. Interfejs kreiran u okviru ovog projekta, omogućava i prikaz ukupne statistike. Generisanje \strano{gcov} izveštaja za sve izvorne fajlove projekta je dosta olakšano. Umesto višestrukih poziva alata i pozicionaranja u okviru direktorijuma projekta, celokupna funkcionalnost se izvršava jednim klikom. 
 
-Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, novi vizuelni alat pruža mogućnost i prikupljanja podataka, odnosno slanja signala \kod{SIGUSR1} željenom instrumentalizovanom programu. Time je ukupna funkcionalnost instrumentalizacije dostupna u okviru jednog grafičkog korisničkog interfejsa. Kao što je već napomenuto, korišćenje signala na \strano{Windows} operativnom sistemu nije podržano, zbog čega je u ovom slučaju za korišćenje alata preduslov imati već kreirane fajlove \strano{gcda}. Isti princip važi i ukoliko korisnički program predefiniše signal \kod{SIGUSR1}.
+Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, novi grafički interfejs pruža mogućnost i prikupljanja podataka, odnosno slanja signala \kod{SIGUSR1} željenom instrumentalizovanom programu. Time je ukupna funkcionalnost instrumentalizacije dostupna u okviru jedinstvenog grafičkog korisničkog interfejsa. Kao što je već napomenuto, korišćenje signala na \strano{Windows} operativnom sistemu nije podržano, zbog čega je u ovom slučaju za korišćenje novog grafičkog interfejsa preduslov imati već kreirane fajlove \strano{gcda}. Isti princip važi i ukoliko korisnički program predefiniše signal \kod{SIGUSR1}.
 
 % ------------------------------------------------------------------------------
 \chapter{Implementacija}
@@ -371,9 +374,9 @@ Korišćenje ove metode je opciono i zavisi isključivo od želje korisnika i mo
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:registrator}
   \includegraphics[width=\textwidth]{img/coverage-registration-code.png}
   \caption{Izvorni k\^{o}d u okviru fajla: \strano{coverage\_registration.c}}
+  \label{fig:registrator}
 \end{figure}
 
 
@@ -387,18 +390,18 @@ Globane vrednosti unutar same biblioteke koje su zavisne od verzije prevodioca, 
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:brojaci}
   \includegraphics[width=\textwidth]{img/GCOV_COUNTERS.png}
   \caption{Definisanje količine brojaća u zavisnosti od verzije prevodioca}
+  \label{fig:brojaci}
 \end{figure}
 
 Poslednja faza implementacije obuhvata izmene vršene u cilju vremenske i prostorne optimizacije. U starijim verzijama prevodioca \strano{gcc}, računanje kontrolne sume se obavljalo svega jednom, na samom početku izvršavanja instrumentalizovanog programa, u okvuru funkcije \kod{\_\_gcov\_init}. Od verzije 4.7.0., uveden je novi algoritam, po kome se kontrolna suma računa više puta, u toku čitanja podataka iz instrumentalizacionih struktura, posebno za svaki objektni fajl programa. Eventualna oštećenja podataka će sa dovoljno velikom verovatnoćom biti detektovana u globalnog kontrolnoj sumi, pa računanje različite kontrolne sume za svaki element strukture \kod{gcov\_info} troši više vremena nego što doprinosi. Stoga su, u novoj biblioteci, kontrolne sume implementirane po uzoru na verziju 4.6.0. Dodatna optimizacija postignuta je redukovanjem broja sistemskih poziva za ispisivanje sadržaja u fajl \strano{gcda}. Umesto velikog broja manjih poziva sistemskog poziva \strano{write} za svaku 32-obitnu vrednost oznake ili brojača, vrši se jedinstveni poziv za celokupan sadržaj jednog fajla \strano{gcda}. Kako se bafer za privremeno čuvanje ne reciklira, već samo proširuje, ovim se nije povećala prostorna složenost. Dodatni memomorijski prostor je potreban samo za skladištenje jedne dodatne globalne promenljive koja sadrži broj trenutno neispisanih vrednosti. Sa druge strane, procesoru je prepuštena odluka o veličini pojedinačnog bloka koji će se upisati, što je na sistemu najoptimalnija moguća vrednost. Računanje vrednosti histograma je takođe izbačeno iz trenutne implementacije biblioteke \strano{libcoverage}, pošto se vrednosti nisu koristile ni u jednom dokumentovanom slučaju upotrebe. Prisustvo histograma je zadržano isključivo u definiciji odgovarajuće instrumentalizacione strukture, u cilju kompatibilnosti sa prevodiocem. Manja ušteda prostora je ostvarena i uvođenjem pravolinijskog prolaska kroz strukture. Umesto alociranja privremenog pokazivača na međustrukturu, kao što je prikazano u gorenjem delu slike \ref{fig:pristup}, korišćen je pravolinijski pristup prikazan u donjem delu iste slike. 
 \\ 
 \begin{figure}[!ht]
   \centering
-  \label{fig:pristup}
   \includegraphics[width=0.8\textwidth]{img/cut_the_middleman.png}
   \caption{Pristup instrumentalitacionim strukturama}
+  \label{fig:pristup}
 \end{figure}
 
 
@@ -413,6 +416,7 @@ Grafički korisnički interfejs se sastoji iz dve celine: kontrolne i prezentaci
   \label{fig:GUI1}
   \includegraphics[width=\textwidth]{img/GUI_1.png}
   \caption{Grafički alat po pokretanju}
+  \label{fig:GUI1}
 \end{figure}
 
 
@@ -425,16 +429,16 @@ Kreiranje oba tipa izveštaja se vrši jedinstvenim pozivom alata, sa jednom dod
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:GUI2}
   \includegraphics[width=\textwidth]{img/GUI_2.png}
   \caption{Odabir radnog direktorijuma u grafičkom alatu}
+  \label{fig:GUI2}
 \end{figure}
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:GUI3}
   \includegraphics[width=\textwidth]{img/GUI_3.png}
   \caption{Generisana celokupna statistika u grafičkom alatu}
+  \label{fig:GUI3}
 \end{figure}
 
 Prezentaciona celina se proteže desnom stranom interfejsa, zauzimajući okvirno dve trećine ukupnog prostora. Sadrži svega jednu komponentu, koja služi za prikaz sadržaja konkreknog izveštaja, odabranog pomoću drvolike strukture leve celine. Implementirana je kao instanca klase za prikaz dinamičkog teksta: \kod{wx.TextCtrl}, čime se pruža dodatna mogućnost kopiranja sadržaja, menjanja ili brisanja. Prikaz izveštaja koji sadrže ne-\strano{ASCI} karaktere, omogućen je korišćenjem unapređene azbuke koju nudi paket: \kod{ISO-8859-1}. Postavljen je kao podrazumevani paket, kako bi se unapredila i upotrebna vrednost funkcionalnosti odabira radnog direktorijuma, ali i omogućilo čitanje fajlova \strano{gcno}. 
@@ -443,9 +447,9 @@ Linija menija je implementirana korišćenjem klase \kod{wx.MenuBar}. Sadrži im
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:GUI4}
   \includegraphics[width=\textwidth]{img/GUI_4.png}
   \caption{Prozor za pomoć u grafičkom alatu}
+  \label{fig:GUI4}
 \end{figure}
  
 U okviru specifikacije alata, kao i u okviru \strano{Help}-a, detaljno je opisana pravilna upotreba alata. Za korisnike koji nemaju naviku da čitaju dokumentacije, specifikacije i pomoćne sadržaje, osmišljen je mehanizam podsvesnog navođenja. Naime, redosled komponenti kontrolne celine je osmišljen i implementiran na način koji ima za cilj podsvesno navođenje korisnika na pravilni redosled upotrebe. Akcije donjih skupova komponenti su u velikoj meri uslovljene akcijama onih iznad, što uslovljava korišćenje "odozgo na gore". Poslednji stepen zaštite od nepravilne upotrebe nalazi se na nivou pojedinačne komponente i onemogućava njen rad, ukoliko potrebni uslovi nisu ispunjeni. Ispunjenost uslova se određuje stanjem radnog direktorijuma i programa, a ne izvršenosti funkcionalnosti alata, čime su pokriveni i slučajevi parcijalne upotrebe alata, kao na primer, pregledanje već generisanih izveštaja. Takođe, tom prilikom se korisniku otvara i mali prozor za dijalog, instanca klase \kod{wx.MessageDialog}, pomoću koga se informiše o konkretnoj grešci u proceduri i dobija savet o adekvatnom sledećem koraku.
@@ -506,18 +510,18 @@ U okviru fajla \strano{main.c} nalazi se glavna funkcija programa koja čita dat
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky1}
   \includegraphics[width=\textwidth]{img/main.png}
   \caption{Izvorni kod: \strano{main.c}}
+  \label{fig:lucky1}
 \end{figure}
 
 Fajl \strano{lucky.c} sadrži definicije dve funkcije, osnovne i pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. Kod fajla lucky.c prikazan je na slici \ref{fig:lucky2}.
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky2}
   \includegraphics[width=\textwidth]{img/lucky.png}
   \caption{PIzvorni kod: \strano{lucky.c}}
+  \label{fig:lucky2}
 \end{figure}
 
 \subsubsection{Plan testiranja}
@@ -594,9 +598,9 @@ Grafička reprezentacija plana testiranja je prikazana na slici \ref{fig:diag}
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:diag}
   \includegraphics[width=\textwidth]{img/lucky_diagram.png}
   \caption{Plan testiranja instrumentalizacije programa \strano{lucky}}
+  \label{fig:diag}
 \end{figure}
 
 \subsubsection{Sprovođenje testiranja i analiza rezultata}
@@ -622,18 +626,18 @@ Prvi korak testiranja obuhvata prevođenje programa na tri načina. Objektni i i
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-1}
   \includegraphics[width=\textwidth]{img/lucky1.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 1}
+  \label{fig:lucky-test-1}
 \end{figure}
 
 Drugi korak obuhvata pokretanje sva tri programa u tri različita terminala, kako bi se omogućila komunikacija putem standardnog ulaza/izlaza. Za pokretanje trećeg programa, bilo je neophodno uključiti i adresu biblioteke \strano{libcoverage.so} u promenljivu okruženja \strano{LD\_LIBRARY\_PATH}, kako bi se linker informsao gde je treba potražiti. Prikaz drugog koraka je dat na slici \ref{fig:lucky-test-2}. 
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-2}
   \includegraphics[width=\textwidth]{img/lucky2.png}
   \caption{Testiranje na programu \strano{lucky} - Koraci 2 i 3}
+  \label{fig:lucky-test-2}
 \end{figure}
 
 Za izvršavanje trećeg koraka testranja, bilo je potrebno definisati jedan slučaj upotrebe programa \strano{lucky}. U cilju što bolje demostracije pojma pokrivenosti i razlika starog i novog pristupa prikupljanju podataka iz izvršavanja programa, odabran je skup komandi koji rezultuju visokoj pokrivenosti. Rezultati ovog koraka prikazani su na slici \ref{fig:lucky-test-2}. i na osnovu njih se može zaključiti da do ovog trenutka nema razlika u ponašanju izmedju različitih verzija programa, što je jedna od glavih odlika ispravne instrumentalizacije. 
@@ -642,18 +646,18 @@ Naredni korak predstavlja najbitniji korak testiranja. Materijal generisan u ovo
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-3}
   \includegraphics[width=\textwidth]{img/lucky3.png}
   \caption{Testiranje na programu \strano{lucky} - Koraci 4.a i 4.b}
+  \label{fig:lucky-test-3}
 \end{figure}
 
 Program \strano{lucky-vers3} se ne prekida odmah, već se najpre vrši kreiranje fajlova gcda i izveštaja. Pokreće se alat \strano{code\_coverage\ viewer} i nakon pritiska na dugme: \strano{Choose workspace} odabira se radni direktorijum: \strano{test\_workspace/version\_03}. U tekstualno polje za unos imena programa, unosi se: \strano{lucky-vers3}, a zatim inicira signal za poziv funkcije \kod{drew\_coverage} klikom na dugme \strano{Dump coverage data}, a uspešnost ovog dela procedure može se lako potvrditi postojanjem nepraznih fajlova gcda u radnom direktorijumu. Dugme: \strano{Generate gcov and fun files} pokreće kreiranje izveštaja, čija imena smešta u drvoliku komponentu alata, dok se sadržaj selektovanog izveštaja prikazuje u desnoj polovini ekrana. Slika \ref{fig:lucky-test-4} vizuelno demonstrira rezultate ovog koraka.
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-4}
   \includegraphics[width=\textwidth]{img/lucky4.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 4c}
+  \label{fig:lucky-test-4}
 \end{figure}
 
 Poslednji korak testiranja obuhvata analizu i validaciju rezultata prethodnih koraka. 
@@ -662,9 +666,9 @@ Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-5}
   \includegraphics[width=\textwidth]{img/lucky5.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5a}
+  \label{fig:lucky-test-5}
 \end{figure}
 
 Zajedničkom analizom koda i ispisa različitih verzija programa \strano{lucky}, mogu se izvesti očekivane vrednosti za izveštaje. Celokupni kod fajla izvornog koda: \strano{lucky.c} se izvršava identičan broj puta u sva tri slučaja. Ispravnost prikupljanja podataka statičkom bibliotekom \strano{libgcov} se aksiomatski uzima za ispravnu, kao sastavni dao programskog prevodioca \strano{gcc}. Usled toga se jednom potvrdom ispravnog prikupljanja podataka novom bibliotekom može smatrati jednakost izveštaja: \strano{test\_workspace/version\_02/lucky.c.gcov} i \strano{test\_workspace/version\_03/lucky.c.gcov}, odnosno
@@ -673,9 +677,9 @@ Linux komandom \strano{diff} ili jednostavnim posmatranjem može se potvrditi da
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-6}
   \includegraphics[width=\textwidth]{img/lucky6.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5b}
+  \label{fig:lucky-test-6}
 \end{figure}
 
 Sa druge strane, izveštaji za fajl izvornog koda: \strano{main.c}, moraju se razlikovati tačno za poslednju iteraciju u okviru najveće petlje i za po jedan poziv funkcija \kod{farewell} and \kod{return}. Na slici \ref{fig:lucky-test-5}. na kojoj je prikazan izlaz komande \strano{diff} i za ova dva gcov izveštaja, jasno se vidi da su ta očekivanja ispunjena. 
@@ -684,9 +688,9 @@ Pristup koji je trenutno implementiran u okviru prevodioca \strano{gcc} nema ugr
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:lucky-test-7}
   \includegraphics[width=\textwidth]{img/lucky7.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5c}
+  \label{fig:lucky-test-7}
 \end{figure}
 
 Svi koraci plana za testiranje, definisanog na početku ove sekcije, su dakle ispunjeni, pa se testiranje može proglasiti uspešno obavljenim. 
@@ -736,16 +740,16 @@ Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakš
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-diff-1}
   \includegraphics[width=\textwidth]{img/configure.png}
   \caption{Izmene skripte \strano{configure}}
+  \label{fig:qemu-diff-1}
 \end{figure}
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-diff-2}
   \includegraphics[width=\textwidth]{img/exit.png}
   \caption{Izmene fajla \strano{linux-user/exit.c}}
+  \label{fig:qemu-diff-2}
 \end{figure}
 
 Testiranjem funkcionalnosti implementirane u toku prve iteracije, detektovana je prva smetnja u ispravnom radu podrške za prikupljanje i prikaz podataka u toku izvršavanja. Detaljnom analizom je utvrđeno da se uprkos uspešnoj registraciji funkcije \kod{coverage\_handler} kao \strano{signal-handler}-a za \strano{SIGUSR1}, k\^{o}d unutar te funkcije ne izvršava. Uzrok ove pojave je predfinisanje svih signala u kodu korisničkih emulatora \strano{QEMU}-a. Kako bi obezbedio emulaciju maksimalnog kvaliteta koja uključuje i podršku za slanje i prijem \strano{POSIX} signala, sve primljene signale \strano{QEMU} prosleđuje emuliranom korisničkom programu. Poruka karakteristična za signal \strano{SIGUSR1}, koja je ispisana tokom testiranja rezultata prve iteracije, nije dakle vodila poreklo iz \strano{QEMU}-a već iz emuliranog korisničkog programa. U cilju prevazilaženja ove prepreke, sprovedena je druga iteracija implementacije podrške za prikupljanje i prikaz podataka u toku izvršavanja, u okviru koje je osmišljen i realizovan novi algoritam za prijem i obradu signala instrumentalizovane verzije \strano{QEMU}-a. 
@@ -759,9 +763,9 @@ U okviru zaglavlja \strano{signal.h}, nalazi se više funkcija koje se mogu kori
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-diff-3}
   \includegraphics[width=\textwidth]{img/signal.png}
   \caption{Izmene fajla \strano{linux-user/signal.c}}
+  \label{fig:qemu-diff-3}
 \end{figure}
 
 Prednost u odnosu na inicijalni plan se ogleda u znatnoj redukciji ograničenja mogućnosti instrumentalizovane verzije emulatora. Gornje ograničenje broja različitih signala je značajno manje od maksimalne celobrojne vrednosti koja se može smestiti u promenljivu tipa \kod{int}. Pored toga, verovatnoća slučaja upotrebe emuliranja korisničkog programa koji koristi tačno ovu kombinaciju je znatno manja nego u slučaju bezuslovne upotrebe signala \strano{SIGUSR1}. Iznimno, podaci iz izvršavanja su ipak namenjeni i potrebni isključivo razvijaocima \strano{QEMU} projekta. Stoga i ako dođe do pojave ekstremnog slučaja upotrebe na koga utiče ovo minimalno ograničenje, razvojni tim poseduje dovoljno znanja i iskustva da promeni korišćeni signal i/ili poruku. 
@@ -774,9 +778,9 @@ Program messanger se pokreće sa jednim argumentom komandne linije koji predstav
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-diff-4}
   \includegraphics[width=\textwidth]{img/messanger.png}
   \caption{Izmene fajla \strano{messanger.c}}
+  \label{fig:qemu-diff-4}
 \end{figure} 
 
 Nakon uspešnog okončavanja druge iteracije implementacije podrške za prikupljanje i prikaz podataka u toku izvršavanja u okviru projekta \strano{QEMU}, stvorili su se optimalni uslovi za finalno testiranje. 
@@ -898,8 +902,8 @@ Dobijeni rezultati su u skladu sa očekivanim, što se jasno može videti na sli
 U okviru drugog koraka, sprovedena je ocena memorijske zahtevnosti. U tabeli \ref{tabela} prikazana je veličina celokupnog projekta, kao i nekoliko pojedinačnih programa unutar projekta, za sve tri verzije. Veličina je prikazana u bajtovima, kao i u obliku procenta regularne veličine. Može se primetiti da se korišćenjem dinamičke biblioteke ostvaruje ušteda od aproksimativno 1\% ukupne veličine.
 
 \begin{table}
-\label{tabela}
 \caption{Tabela sa kvantitativnim podacima ocene memorije}
+\label{tabela}
 \begin{tabular}{ |p{1.9cm}|p{1.5cm}|p{1.9cm}|p{1.5cm}|p{1.9cm}|p{1.5cm}|p{1.9cm}|p{1.5cm} | }
 % \hline
 % \multicolumn{4}{|c|}{Country List} \\
@@ -931,9 +935,9 @@ Treći korak testiranja obuhvata pokretanje svih šest programa u šest različi
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-34}
   \includegraphics[width=\textwidth]{img/qemu-test-23.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Koraci 3 i 4}
+  \label{fig:qemu-test-34}
 \end{figure} 
 
 Za spovođenje četvrtog koraka testiranja, koristiće se redukovani slučaj upotrebe programa \strano{lucky} iz prethodne sekcije, sa samo jednim odabirom opcije: y. Na osnovu rezultata ovog koraka, koji su prikazani na slici na \ref{fig:qemu-test-34}, može se zaključiti da instrumentalizacija i prikupljanje podataka ne remete regularan rad emulatora. Time je potvrđena ispravnost korišćenja biblioteke \strano{libcverage} u realnim primenama. 
@@ -944,9 +948,9 @@ Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve ins
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-5}
   \includegraphics[width=\textwidth]{img/qemu-test-5.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 5c}
+  \label{fig:qemu-test-5}
 \end{figure} 
 
 
@@ -957,9 +961,9 @@ potvrđuju ispunjenost preostalih kriterijuma validacije ispisa.
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-6a}
   \includegraphics[width=\textwidth]{img/qemu-test-6a.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6a}
+  \label{fig:qemu-test-6a}
 \end{figure} 
 
 Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. Na slici \ref{fig:qemu-test-6b-1} su prikazani delovi izveštaja: \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/arm-linux-user/linux-user/signal.c.gcov} i \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/mips-linux-user/linux-user/signal.c.gcov}
@@ -970,25 +974,25 @@ koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-6b-1}
   \includegraphics[width=\textwidth]{img/qemu-test-6b-1.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6b bez izmena}
+  \label{fig:qemu-test-6b-1}
 \end{figure} 
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-6b-2}
   \includegraphics[width=\textwidth]{img/qemu-test-6b-2.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6b sa izmenama}
+  \label{fig:qemu-test-6b-2}
 \end{figure} 
 
 Generisanje ukupne pokrivenosti projekta će biti sprovedeno na isti način kao i u okviru testiranja nad programom \strano{lucky} u prethodnoj sekciji.Jednostavnim prebrajanjem linija koje su u izveštajima označene kao izvršene/izvršne, i računanjem količnika ta dva broja, dobijaju jednake vrednosti kao one koje su generisane alatom i prikazane na slici \ref{fig:qemu-test-6c}
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-6c}
   \includegraphics[width=0.4\textwidth]{img/qemu-test-6c.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6c}
+  \label{fig:qemu-test-6c}
 \end{figure} 
 
 Na osnovu uspešnih rezultata svih koraka predviđenog plana za testiranje, testiranje se može smatrati uspešnim.
