@@ -429,7 +429,6 @@ Grafički korisnički interfejs se sastoji iz dve celine: kontrolne i prezentaci
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:GUI1}
   \includegraphics[width=\textwidth]{img/GUI_1.png}
   \caption{Grafički interfejs po pokretanju}
   \label{fig:GUI1}
@@ -527,11 +526,11 @@ Intuitivnost i jednostavnost upotrebe novog grafičkog interfejsa za prikaz poda
 
 \section{Testiranje}
 
-Testiranje validnosti i performansi softverskog rešenja za prikupljanje i prikaz podataka o pokrivenosti koda u toku izvršavanja je originalno sprovedeno nad dva veća softvera izrađena za potrebe digitalne televizije, u okviru kojih se još uvek koristi. Usled zatvorenosti koda ovih softvera, ti rezultati neće biti prikazani u ovom radu. Za potrebe demonstracije rada softverskog rešenja i rezultata testiranja, biće iskorišćena dva pogodnija primera. Najpre će biti demonstrirana korektnost na manjem, preglednijem primeru. Demonstracija mogućnosti realne primene kao i analize performansi u komercionalnim projektima biće izvršene na znatno većem projektu otvorenog koda, pod nazivom QEMU. 
+Testiranje validnosti i performansi softverskog rešenja za prikupljanje i prikaz podataka o pokrivenosti koda u toku izvršavanja je originalno sprovedeno nad dva veća softvera izrađena za potrebe digitalne televizije, u okviru kojih se još uvek koristi. Usled zatvorenosti koda ovih softvera, ti rezultati neće biti prikazani u ovom radu. Za potrebe demonstracije rada softverskog rešenja i rezultata testiranja, biće iskorišćena dva pogodnija primera. Najpre će biti demonstrirana korektnost na manjem, preglednijem primeru. Demonstracija mogućnosti realne primene kao i analize performansi u komercionalnim projektima biće izvršene na znatno većem projektu otvorenog koda, pod nazivom QEMU \cite{QEMU}. 
 
 \subsection{Jednostavni primer: generator srećnog broja}
 
-Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{code\_coverage\_viewer} biće sprovedena nad jednostavnim primerom koji se sasoji od dva fajla izvornog koda sa pet funkcija, dve naredbe grananja i pet petlji. Poslednja petlja će biti beskonačna, u cilju bolje demonstracije primene prikupljanja koda u toku izvršavanja.
+Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{code\_coverage\_viewer} biće sprovedena nad jednostavnim primerom koji se sastoji od dva fajla izvornog koda sa pet funkcija, dve naredbe grananja i pet petlji. Poslednja petlja će biti beskonačna, u cilju bolje demonstracije primene prikupljanja koda u toku izvršavanja.
 
 \subsubsection{Opis koda primera}
 
@@ -569,20 +568,25 @@ Plan za testiranje je definisan sledećim koracima:
 
 \item prevođenje programa:
 \begin{enumerate}
-\item verzija bez instrumentalizacije se prevodi na uobičajeni način, sledećim komandama: 
-\kod{gcc -c lucky.c main.c; gcc lucky.o main.o -o lucky-vers1;}
-\item verzija sa instrumentalizacijom i standardnom bibliotekom \strano{libgcov} se prevodi sa dotatnim flegovima \kod{-fprofile-arcs -ftest-coverage} i u prvom koraku za instrrumentalizaciju, a i u drugom za definisanje korišćenja standardne biblioteke \strano{libgcov}: 
-\kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage; gcc lucky.o main.o –o lucky-vers2 –fprofile-arcs –ftest-coverage;}
-\item verzija sa instrumentalizacijom i novom bibliotekom libcoverage se prevodi sa dotatnim flegovima \kod{-fprofile-arcs -ftest-coverage} isključivo u prvom koraku za instrrumentalizaciju, dok se linkeru prosleđuju biblioteka \strano{libcoverage} i objektni fajl: \strano{coverage\_registration.o}:
-\kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage; gcc lucky.o main.o -o lucky-vers3 –L<putanja do biblioteke libcoverage> -lcoverage <putanja do coverage\_registration>/coverage\_registration.o}
+\item verzija bez instrumentalizacije se prevodi na uobičajeni način, sledećim komandama: \\
+\kod{gcc -c lucky.c main.c} \\
+\kod{gcc lucky.o main.o -o lucky-vers1}
+\item verzija sa instrumentalizacijom i standardnom bibliotekom \strano{libgcov} se prevodi sa dotatnim flegovima \kod{-fprofile-arcs} i \kod{-ftest-coverage} i u prvom koraku za instrumentalizaciju, a i u drugom za definisanje korišćenja standardne biblioteke \strano{libgcov}: \\
+\kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage} \\
+\kod{gcc lucky.o main.o –o lucky-vers2 -fprofile-arcs -ftest-coverage}
+\item verzija sa instrumentalizacijom i novom bibliotekom libcoverage se prevodi sa dotatnim flegovima \kod{-fprofile-arcs -ftest-coverage} isključivo u prvom koraku za instrumentalizaciju, dok se linkeru prosleđuju biblioteka \strano{libcoverage} i objektni fajl: \strano{coverage\_registration.o}: \\
+\kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage} \\
+\kod{gcc lucky.o main.o -o lucky-vers3 –L<putanja do biblioteke libcoverage> -lcoverage <putanja do coverage\_registration>/coverage\_registration.o}
 \end{enumerate}
 
 \item pokretanje programa:
 \begin{enumerate}
-\item podešavanje okruženja, neophodno samo za pokretanje treće verzije programa:
+\item podešavanje okruženja, neophodno samo za pokretanje treće verzije programa: \\
 \kod{export LD\_LIBRARY\_PATH=<putanja do biblioteke libcoverage>}
-\item pokretanje sva tri programa se zatim vrši na standardan način:
-\kod{./lucky-vers1; ./lucky-vers2; ./lucky-vers3}
+\item pokretanje sva tri programa se zatim vrši na standardan način: \\
+\kod{./lucky-vers1} \\
+\kod{./lucky-vers2} \\
+\kod{./lucky-vers3} \\
 \end{enumerate}
 
 \item sprovodjenje inicijalnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
@@ -595,28 +599,30 @@ Plan za testiranje je definisan sledećim koracima:
 \item Sprovodjenje završnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
 \begin{enumerate}
 \item program: \strano{lucky-vers1} se prekida odabirom opcije: n
-\item program: \strano{lucky-vers2} se prekida odabirom opcije: n i generišu se izveštaji:\kod{ gcov lucky.c –f  > lucky.fun; gcov main.c –f  > main.fun;}
+\item program: \strano{lucky-vers2} se prekida odabirom opcije: n i generišu se izveštaji: \\
+\kod{ gcov lucky.c –f  > lucky.fun} \\
+\kod{ gcov main.c –f  > main.fun;}
 \item program \strano{lucky-vers3} se ne prekida u cilju demonstracije prikupljanja i prikaza podataka u toku izvršavanja; sprovode se sledeći koraci:
 \begin{enumerate}
 \item Pokreće se grafički korisnički interfejs code\_coverage\_viewer
 \item Odabira se radni direktorijum gde se nalazi lucky-vers3
 \item Unosi se ime programa u odgovarajuće teks polje: lucky-vers3
-\item Klik na dugme: “Dump coverage data”
-\item Klik na dugme: “Generate gcov and function reports”
-\item Klik na dugme: “Generate total coverage”
+\item Klik na dugme: \strano{Dump coverage data}
+\item Klik na dugme: \strano{Generate gcov and function} reports”
+\item Klik na dugme: \strano{Generate total coverage}
 \end{enumerate}
 \end{enumerate}
 \item validacija: 
 \begin{enumerate}
 
-\item validacija ispisa na standardni izlaz; kriterijumi ispunjavanja se definisu na sledeći način:
+\item validacija ispisa na standardni izlaz; kriterijumi ispunjavanja se definišu na sledeći način:
 \begin{enumerate}
 \item sva tri programa imaju identčan ispis iz inicijalnog dela slučaja upotrebe
 \item programi \strano{lucky-vers1} i  \strano{lucky-vers2} imaju identičan ispis iz završnog dela slučaja upotrebe
 \item program \strano{lucky-vers3} nema ispis iz završnog dela slučaja uporebe
 \item program \strano{lucky-vers3} ima ispise iz biblioteke i registracionog objektnog fajla.
 \end{enumerate}
-\item validacija izveštaja; kriterijumi ispunjavanja se definisu na sledeći način: 
+\item validacija izveštaja; kriterijumi ispunjavanja se definišu na sledeći način: 
 \begin{enumerate}
 \item izveštaji generisani za fajlove izvornog koda programa: \strano{lucky-vers2} i \strano{lucky-vers3} se poklapaju na inicijalnom delu slučaja upotrebe
 \item izveštaji generisani za fajlove izvornog koda programa \strano{lucky-vers3} nemaju pozitivne podatke iz izvršavanja za završni deo slučaja upotrebe
@@ -638,11 +644,20 @@ Grafička reprezentacija plana testiranja je prikazana na slici \ref{fig:diag}
 
 Pre početka testiranja, neophodno je kreirati radno okruženje, sledećim naredbama:
 \begin{enumerate}
-\item kreiranje radnog direktorijuma: “\kod{mkdir\ test\_workspace}
-\item kreiranje tri bazna direktorijuma sa kodom za različite verzije programa:
-\kod{mkdir test\_workspace/version\_01 test\_workspace/version\_02 test\_workspace/version\_03; cp lucky.c main.c test\_workspace/version\_01; cp lucky.c main.c test\_workspace/version\_02; cp lucky.c main.c test\_workspace/version\_03;}
-\item kreiranje direktorijuma sa bibliotekom \strano{libcoverage} i registratorom signala:
-\kod{mkdir test\_workspace/runtime\_coverage; cp libcovergage.so test\_workspace/runtime\_coverage; cp coverage\_registration.o test\_workspace/runtime\_coverage; cp code\_coverage\_viewer.py test\_workspace/runtime\_coverage;}
+\item kreiranje radnog direktorijuma: \\
+\kod{mkdir test\_workspace}
+\item kreiranje tri bazna direktorijuma sa kodom za različite verzije programa: \\
+\kod{mkdir test\_workspace/version\_01} \\
+\kod{mkdir test\_workspace/version\_02} \\ 
+\kod{mkdir test\_workspace/version\_03} \\
+\kod{cp lucky.c main.c test\_workspace/version\_01} \\
+\kod{cp lucky.c main.c test\_workspace/version\_02} \\
+\kod{cp lucky.c main.c test\_workspace/version\_03} \\
+\item kreiranje direktorijuma sa bibliotekom \strano{libcoverage} i registratorom signala: \\
+\kod{mkdir test\_workspace/runtime\_coverage} \\
+\kod{cp libcovergage.so test\_workspace/runtime\_coverage} \\
+\kod{cp coverage\_registration.o test\_workspace/runtime\_coverage} \\ 
+\kod{cp code\_coverage\_viewer.py test\_workspace/runtime\_coverage}
 \end{enumerate}
 
 Prvi korak testiranja obuhvata prevođenje programa na tri načina. Objektni i izvršni fajlove smeštaju se u odgovarajući radni direktorijum konkretne verzije. Za potvrdu uspešnosti ovog koraka, proverava se prisustvo fajlova gcno, komandom \kod{ls} i prisustvo funkcija: \kod{\_\_gcov\_init}, \kod{gcov\_exit} i \kod{drew\_coverage}, komandom \kod{readelf}. Dobijeni rezultati obuhvataju:
@@ -653,7 +668,7 @@ Prvi korak testiranja obuhvata prevođenje programa na tri načina. Objektni i i
 \item odsustvo funkcija \kod{\_\_gcov\_init}, \kod{drew\_coverage} i \kod{gcov\_exit} u programu \strano{lucky-vers1}
 \end{enumerate}
 
-što predstavlja ispravne rezultate. Sprovođenje prvog koraka testiranja i rezultati istog, prikazani su na slici \ref{fig:lucky-test-1}.
+ što predstavlja ispravne rezultate. Sprovođenje prvog koraka testiranja i rezultati istog, prikazani su na slici \ref{fig:lucky-test-1}.
 
 \begin{figure}[!ht]
   \centering
@@ -671,7 +686,7 @@ Drugi korak obuhvata pokretanje sva tri programa u tri različita terminala, kak
   \label{fig:lucky-test-2}
 \end{figure}
 
-Za izvršavanje trećeg koraka testranja, bilo je potrebno definisati jedan slučaj upotrebe programa \strano{lucky}. U cilju što bolje demostracije pojma pokrivenosti i razlika starog i novog pristupa prikupljanju podataka iz izvršavanja programa, odabran je skup komandi koji rezultuju visokoj pokrivenosti. Rezultati ovog koraka prikazani su na slici \ref{fig:lucky-test-2}. i na osnovu njih se može zaključiti da do ovog trenutka nema razlika u ponašanju izmedju različitih verzija programa, što je jedna od glavih odlika ispravne instrumentalizacije. 
+Za izvršavanje trećeg koraka testranja, bilo je potrebno definisati jedan slučaj upotrebe programa \strano{lucky}. U cilju što bolje demostracije pojma pokrivenosti i razlika starog i novog pristupa prikupljanju podataka iz izvršavanja programa, odabran je skup komandi koji rezultuju visokoj pokrivenosti. Rezultati ovog koraka prikazani su na slici \ref{fig:lucky-test-2}. i na osnovu njih se može zaključiti da do ovog trenutka nema razlika u ponašanju između različitih verzija programa, što je jedna od glavih odlika ispravne instrumentalizacije. 
 
 Naredni korak predstavlja najbitniji korak testiranja. Materijal generisan u ovom koraku predstavlja krajnji proizvod i njegove karakteristike će učestvovati u procesu finalne validacije. Procedura se razlikuje u zavisnosti od verzije programa. Izvršavanje neinstrumentalizovane verzije, više nije neophodno, te se ista prekida odabirom opcije: n. Program, čije podatke iz izvršavanja prikuplja standardna biblioteka \strano{libgcov}, će automatski izvršiti ispis tih podataka na kraju izvršavanja, stoga se i njegovo izvršavanje prekida na isti način. Važno je napomenuti da u slučaju nasilnog prekida programa, poput prekida korišćenjem signala \strano{SIGKILL} ili \strano{SIGARBT}, funkcija \kod{atexit} se neće izvršiti i fajlovi \strano{gcda} neće biti generisani. Stoga se može jasno zaključiti da se podaci o pokrivenosti koda programa koji nemaju ugrađeni mehanizam za takozvani: “graciozni izlaz” mogu dobiti samo i isključivo korišćenjem nove biblioteke \strano{libcoverage}. U trenutnom test primeru nije prisutno tako nešto, zbog čega su fajlovi \strano{gcda} uspešno generisani i neprazni. Pozivom alata \strano{gcov}, generišu se uspešno izveštaji, koji će se validirati u narednom koraku. Rezultati koraka 4.a i 4.b prikazani su na slici \ref{fig:lucky-test-3}.
 
@@ -702,8 +717,8 @@ Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1
   \label{fig:lucky-test-5}
 \end{figure}
 
-Zajedničkom analizom koda i ispisa različitih verzija programa \strano{lucky}, mogu se izvesti očekivane vrednosti za izveštaje. Celokupni kod fajla izvornog koda: \strano{lucky.c} se izvršava identičan broj puta u sva tri slučaja. Ispravnost prikupljanja podataka statičkom bibliotekom \strano{libgcov} se aksiomatski uzima za ispravnu, kao sastavni dao programskog prevodioca \strano{gcc}. Usled toga se jednom potvrdom ispravnog prikupljanja podataka novom bibliotekom može smatrati jednakost izveštaja: \strano{test\_workspace/version\_02/lucky.c.gcov} i \strano{test\_workspace/version\_03/lucky.c.gcov}, odnosno
-\strano{test\_workspace/version\_02/lucky.fun} i \strano{test\_workspace/version\_03/lucky.fun}
+Zajedničkom analizom koda i ispisa različitih verzija programa \strano{lucky}, mogu se izvesti očekivane vrednosti za izveštaje. Celokupni kod fajla izvornog koda: \strano{lucky.c} se izvršava identičan broj puta u sva tri slučaja. Prikupljanje podataka statičkom bibliotekom \strano{libgcov} se aksiomatski uzima za ispravno, kao sastavni dao programskog prevodioca \strano{gcc}. Usled toga se jednom potvrdom ispravnog prikupljanja podataka novom bibliotekom može smatrati jednakost izveštaja: \\ \strano{test\_workspace/version\_02/lucky.c.gcov} i \strano{test\_workspace/version\_03/lucky.c.gcov}, odnosno: \\
+\strano{test\_workspace/version\_02/lucky.fun} i \strano{test\_workspace/version\_03/lucky.fun}  \\
 Linux komandom \strano{diff} ili jednostavnim posmatranjem može se potvrditi da je kriterijum jednakosti ispunjen, što je vizuelno prikazano na slici \ref{fig:lucky-test-6}.
 
 \begin{figure}[!ht]
@@ -713,9 +728,9 @@ Linux komandom \strano{diff} ili jednostavnim posmatranjem može se potvrditi da
   \label{fig:lucky-test-6}
 \end{figure}
 
-Sa druge strane, izveštaji za fajl izvornog koda: \strano{main.c}, moraju se razlikovati tačno za poslednju iteraciju u okviru najveće petlje i za po jedan poziv funkcija \kod{farewell} and \kod{return}. Na slici \ref{fig:lucky-test-5}. na kojoj je prikazan izlaz komande \strano{diff} i za ova dva gcov izveštaja, jasno se vidi da su ta očekivanja ispunjena. 
+Sa druge strane, izveštaji za fajl izvornog koda: \strano{main.c}, moraju se razlikovati tačno za poslednju iteraciju u okviru najveće petlje i za po jedan poziv funkcija \kod{farewell} and \kod{return}. Na slici \ref{fig:lucky-test-5}, na kojoj je prikazan izlaz komande \strano{diff} i za ova dva \strano{gcov} izveštaja, jasno se vidi da su ta očekivanja ispunjena. 
 
-Pristup koji je trenutno implementiran u okviru prevodioca \strano{gcc} nema ugrađenu podršku za računanje ukupne pokrivenosti. Stoga će se ova funkcionalnost testirati nezavisno od tradicionalnog pristupa, poređenjem rezultata interfejsa \strano{code\_coverage\_viewer} sa manuelno izračunatim vrednostima. Jednostavnim prebrajanjem dobijaju se vrednosti u skladu sa onima koje je prikazao \strano{code\_coverage\_viewer}, koje se mogu videti i na slici \ref{fig:lucky-test-7}
+Pristup koji je trenutno implementiran u okviru prevodioca \strano{gcc} nema ugrađenu podršku za računanje ukupne pokrivenosti. Stoga će se ova funkcionalnost testirati nezavisno od tradicionalnog pristupa, poređenjem rezultata interfejsa \\ \strano{code\_coverage\_viewer} sa manuelno izračunatim vrednostima. Jednostavnim prebrajanjem dobijaju se vrednosti u skladu sa onima koje je prikazao \\ \strano{code\_coverage\_viewer}, koje se mogu videti i na slici \ref{fig:lucky-test-7}
 
 \begin{figure}[!ht]
   \centering
@@ -727,13 +742,13 @@ Pristup koji je trenutno implementiran u okviru prevodioca \strano{gcc} nema ugr
 Svi koraci plana za testiranje, definisanog na početku ove sekcije, su dakle ispunjeni, pa se testiranje može proglasiti uspešno obavljenim. 
 
 
-\subsection{Komplikovani primer: QEMU}
+\subsection{Kompleksni primer: QEMU}
 
-Za demonstraciju korektnosti rada biblioteke \strano{libcoverage} i grafičkog korisničkog interfejsa \strano{code\_coverage\_viewer} u realnim situacijama odabran je projekat \strano{QEMU}, najpre zbog svoje veličine i značaja, ali i zbog karakteristika na kojima se mogu dobro sagledavati različite prepreke koje se mogu javiti prilikom infiltracije novog softverskog rešenja za prikupljanje podataka iz izvršavanja u realni projekat, kao i načini za njihovo prevazilazenje.
+Za demonstraciju korektnosti rada biblioteke \strano{libcoverage} i grafičkog korisničkog interfejsa \strano{code\_coverage\_viewer} u realnim situacijama odabran je projekat \strano{QEMU}, najpre zbog svoje veličine i značaja, ali i zbog karakteristika na kojima se mogu dobro sagledavati različite prepreke koje se mogu javiti prilikom infiltracije novog softverskog rešenja za prikupljanje podataka iz izvršavanja u realni projekat, kao i načini za njihovo prevazilaženje.
 
 \subsubsection{Šta je QEMU}
 
-\strano{QEMU} \cite{QEMU} je besplatni softver otvorenog koda, čija osnovna funkcija predstavlja emuliranje operativnih sistema ili programa na mašini različite arhitekture od njih samih. Spektar podržanih arhitektura na kojima se \strano{QEMU} može pokrenuti ili koje može emulirati je veoma širok, i obuhvata \strano{MIPS}, \strano{ARM}, \strano{x86}, \strano{PPC} i mnoge druge.
+\strano{QEMU} je slobodni softver otvorenog koda, čija osnovna funkcija predstavlja emuliranje operativnih sistema ili programa na mašini različite arhitekture od njih samih. Spektar podržanih arhitektura na kojima se \strano{QEMU} može pokrenuti ili koje može emulirati je veoma širok, i obuhvata \strano{MIPS}, \strano{ARM}, \strano{x86}, \strano{PPC} i mnoge druge.
 \strano{QEMU} ima dva režima rada:
 \begin{enumerate}
 \item sistemski: potpuna emulacija jednog sistema (npr. operativnog) na drugom
@@ -745,7 +760,7 @@ Za potrebe ovog testiranja, instrumentalizovaće se kompletni kod \strano{QEMU}-
 
 Osnovni radni direktorijum \strano{QEMU}-a sadrži veliki broj skripti za definisanje fleksibilnih parametara, \strano{makefile}-ova sa instrukcijama za izgradnju sistema i fajlova izvornog koda pisanih u programskom jeziku C. Skripte za konfiguraciju, osnovni \strano{makefile}-ovi i kodovi pojedenih alata su smešteni u sam koreni direktorijum projekta. Ostatak je grupisan u poddirektorijume prema funkcionalnosti i/ili programu kome pripadaju.
 
-Glavni deo koda programa koji čine sistemski režim rada se nalazi u poddirektorijuma ciji nazivom sadrži ime arhitekture koja se emulira i sufiks \strano{-softmmu}. U njega se smešta i izvršna verzija, prepoznatljiva po prefiksu: \strano{qemu-system-}.
+Glavni deo koda programa koji čine sistemski režim rada se nalazi u poddirektorijuma čiji nazivi sadrže ime arhitekture koja se emulira i sufiks \strano{-softmmu}. U njega se smešta i izvršna verzija, prepoznatljiva po prefiksu: \strano{qemu-system-}.
 
 Poddirektorijumi čiji nazivi sadrže ime arhitekture i sufiks \strano{-linux-user}, sadrže osnovni deo koda odgovarajćeg programa korisničkog režima koji emulira tu arhitekturu. Prevođenjem se kreira izvršna verzija, koja se smešta u isti direktorijum, i čiji naziv sačinjavaju prefiks \strano{qemu-} i naziv arhitekture emuliranog programa.
 
@@ -835,22 +850,27 @@ Plan za testiranje je definisan sledećim koracima:
 
 \item konfiguracija i prevođenje:
 \begin{enumerate}
-\item verzija bez instrumentalizacije se konfiguriče sa opcijom \kod{–enable-debug} kako bi se postigao isti stepen optimizacije sa instrumentalizovanim verzijama: \kod{./configure –enable-debug}; dodavanje ove opcije ne utiče na izvršavanje, već je značajno samo za poređenje memoriske zahtevnosti verzija
-\item verzija sa instrumentalizacijom i standardnom bibliotekom \strano{libgcov} se konfiguriše sa starom opcijom za instrumentalizaciju: \kod{./configure –enable-gcov}
-c. verzija sa instrumentalizacijom i novom bibliotekom \strano{libcoverage} se konfiguriše sa novom opcijom za instrumentalizaciju: \kod{./configure –enable-runtime-gcov}
+\item verzija bez instrumentalizacije se konfiguriče sa opcijom \kod{–enable-debug} kako bi se postigao isti stepen optimizacije sa instrumentalizovanim verzijama: \\ \kod{./configure –enable-debug}\\ dodavanje ove opcije ne utiče na izvršavanje, već je značajno samo za poređenje memoriske zahtevnosti verzija
+\item verzija sa instrumentalizacijom i standardnom bibliotekom \strano{libgcov} se konfiguriše sa starom opcijom za instrumentalizaciju: \\
+\kod{./configure –enable-gcov}
+\item verzija sa instrumentalizacijom i novom bibliotekom \strano{libcoverage} se konfiguriše sa novom opcijom za instrumentalizaciju: \\
+\kod{./configure –enable-runtime-gcov}
 \item prevođenje sve tri verzije se inicira ključnom rečju: \strano{make}
 \end{enumerate}
 
 \item analiza memorijske zahtevnosti:
 \begin{enumerate}
-\item prostor potreban za skladištenje celokupnog izgrađenog projekta \strano{QEMU}, kao i veličina svakog pojedinačnog emulatora, mora zadovoljavati sledeće nejednakosti:
-\kod{ size(<qemu\_vers1>) < size(<qemu\_vers3>) < size(<qemu\_vers2>) \&\& size(<qemu\_vers1>/<adresa\_programa>) < size(<qemu\_vers3>/<adresa\_programa>) < size(<qemu\_vers2>/<adresa\_programa>) }
+\item prostor potreban za skladištenje celokupnog izgrađenog projekta \strano{QEMU}, kao i veličina svakog pojedinačnog emulatora, mora zadovoljavati sledeće nejednakosti: \\
+\kod{ size(<qemu\_vers1>) < size(<qemu\_vers3>) < size(<qemu\_vers2>) \\ \&\& \\ size(<qemu\_vers1>/<adresa\_programa>) < size(<qemu\_vers3>/<adresa\_programa>) < size(<qemu\_vers2>/<adresa\_programa>) }
 \end{enumerate}
 
 \item pokretanje programa:
 \begin{enumerate}
-\item podešavanje okruženja, neophodno samo za pokretanje treće verzije: \kod{ export LD\_LIBRARY\_PATH=<putanja do biblioteke libcoverage>}
-\item pokretanje svih programa se vrši na standardan način: \kod{ qemu/arm-linux-user/qemu-arm lucky\_arm/lucky; qemu/mips-linux-user/mips-arm lucky\_mips/lucky;}
+\item podešavanje okruženja, neophodno samo za pokretanje treće verzije: \\
+\kod{ export LD\_LIBRARY\_PATH=<putanja do biblioteke libcoverage>}
+\item pokretanje svih programa se vrši na standardan način: \\
+\kod{ qemu/arm-linux-user/qemu-arm lucky\_arm/lucky} \\
+\kod{qemu/mips-linux-user/mips-arm lucky\_mips/lucky}
 \end{enumerate}
 
 \item sprovođenje inicijalnog dela, za sve tri verzije i oba emulatora unapred utvrđenog, slučaja upotrebe:
@@ -904,21 +924,43 @@ c. verzija sa instrumentalizacijom i novom bibliotekom \strano{libcoverage} se k
 Pre početka testiranja, neophodno je kreirati radno okruženje, sledećim naredbama:
 \begin{enumerate}
 \item kreiranje radnog direktorijuma: \kod{mkdir qemu\_test\_workspace}
-\item kreiranje tri bazna direktorijuma za različite verzije programa: \kod{ mkdir qemu\_test\_workspace/qemu\_version\_01 qemu\_test\_workspace/qemu\_version\_02 qemu\_test\_workspace/qemu\_version\_03}
-\item instalacija potrebnih biblioteka i alata za rad \strano{QEMU}-a i prevođenje progama za \strano{ARM}/\strano{MIPS} arhitekture: \kod{ sudo apt-get install build-essential zlib1g-dev pkg-config libglib2.0-dev binutils-dev libboost-all-dev autoconf libtool libssl-dev libpixman-1-dev libpython-dev python-pip libc6-armel-cross libc6-dev-armel-cross binutils-arm-linux-gnueabi libncurses5-dev gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf} i \strano{MTI GNU/Linux Toolchain MIPS32R2-MIPS32R5, MIPS64R2-MIPS64R5 and microMIPS za linux x64} preuzeti sa zvaničnog sajta: \strano{codescape.mips.com}
-\item obezbeđivanje koda \strano{QEMU}-a sa git repozitorijuma: \kod{cd qemu\_test\_workspace/qemu\_version\_<1/2/3>; git clone https://github.com/qemu/qemu.git}
-\item unos izmena neophodnih za prikupljanje i prikaz podataka u toku izvršavanja, ručno ili koristeći \kod{git apply}
-\item kreiranje direktorijuma sa bibliotekom \strano{libcoverage}, registratorom signala i interfejsom za prikaz podataka o pokrivenosti koda: \kod{ cp -r SRC/code\_coverage\_lib/ qemu\_test\_workspace/qemu\_version\_03/qemu/; cp -r SRC/code\_coverage\_viewer/ qemu\_test\_workspace/qemu\_version\_03/qemu/; cd qemu\_test\_workspace/qemu\_version\_03/qemu/code\_coverage\_lib; make all}
-\item kreiranje direktorijuma sa programom koji će se emulirati: \kod{ mkdir qemu\_test\_workspace/lucky\_mips; mkdir qemu\_test\_workspace/lucky\_arm; cp lucky.c main.c qemu\_test\_workspace/lucky\_mips; cp lucky.c main.c qemu\_test\_workspace/lucky\_arm; cd qemu\_test\_workspace/lucky\_arm; arm-linux-gnueabihf-gcc lucky.c main.c -c; arm-linux-gnueabihf-gcc lucky.o main.o -o lucky; cd qemu\_test\_workspace/lucky\_mips; mips-mti-linux-gnu-gcc lucky.c main.c -c; mips-mti-linux-gnu-gcc lucky.o main.o -o lucky -static;}
-\item kreiranje programa: \strano{messanger}: \kod{ cp messanger.c qemu\_test\_workspace/qemu\_version\_03/; cd qemu\_test\_workspace/qemu\_version\_03/; gcc messanger.c -o messanger;}
+\item kreiranje tri bazna direktorijuma za različite verzije programa: \\
+\kod{mkdir qemu\_test\_workspace/qemu\_version\_01} \\ \kod{mkdir qemu\_test\_workspace/qemu\_version\_02} \\ \kod{mkdir qemu\_test\_workspace/qemu\_version\_03} \\
+\item instalacija potrebnih biblioteka i alata za rad \strano{QEMU}-a i prevođenje progama za \strano{ARM}/\strano{MIPS} arhitekture: \\
+\kod{ sudo apt-get install build-essential zlib1g-dev pkg-config libglib2.0-dev binutils-dev libboost-all-dev autoconf libtool libssl-dev libpixman-1-dev libpython-dev python-pip libc6-armel-cross libc6-dev-armel-cross binutils-arm-linux-gnueabi libncurses5-dev gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf} i \strano{MTI GNU/Linux Toolchain MIPS32R2-MIPS32R5, MIPS64R2-MIPS64R5 and microMIPS za linux x64} preuzeti sa zvaničnog sajta: \strano{codescape.mips.com}
+\item obezbeđivanje koda \strano{QEMU}-a sa git repozitorijuma: \\
+\kod{cd qemu\_test\_workspace/qemu\_version\_<1/2/3>} \\
+\kod{ git clone https://github.com/qemu/qemu.git}
+\item unos izmena neophodnih za prikupljanje i prikaz podataka u toku izvršavanja, ručno ili koristeći \\
+\kod{git apply}
+\item kreiranje direktorijuma sa bibliotekom \strano{libcoverage}, registratorom signala i interfejsom za prikaz podataka o pokrivenosti koda: \\
+\kod{ cp -r SRC/code\_coverage\_lib/ qemu\_test\_workspace/qemu\_version\_03/qemu/} \\
+\kod{cp -r SRC/code\_coverage\_viewer/ qemu\_test\_workspace/qemu\_version\_03/qemu/} \\
+\kod{cd qemu\_test\_workspace/qemu\_version\_03/qemu/code\_coverage\_lib} \\
+\kod{make all}
+\item kreiranje direktorijuma sa programom koji će se emulirati: \\
+\kod{ mkdir qemu\_test\_workspace/lucky\_mips} \\
+\kod{ mkdir qemu\_test\_workspace/lucky\_arm} \\
+\kod{ cp lucky.c main.c qemu\_test\_workspace/lucky\_mips} \\
+\kod{ cp lucky.c main.c qemu\_test\_workspace/lucky\_arm} \\
+\kod{ cd qemu\_test\_workspace/lucky\_arm} \\
+\kod{ arm-linux-gnueabihf-gcc lucky.c main.c -c} \\
+\kod{ arm-linux-gnueabihf-gcc lucky.o main.o -o lucky} \\
+\kod{cd qemu\_test\_workspace/lucky\_mips} \\
+\kod{ mips-mti-linux-gnu-gcc lucky.c main.c -c} \\
+\kod{ mips-mti-linux-gnu-gcc lucky.o main.o -o lucky -static} 
+\item kreiranje programa: \strano{messanger}: \\
+\kod{ cp messanger.c qemu\_test\_workspace/qemu\_version\_03/} \\
+\kod{cd qemu\_test\_workspace/qemu\_version\_03/} \\
+\kod{ gcc messanger.c -o messanger}
 \end{enumerate}
 
 Prvi korak testiranja obuhvata konfigurisanje i prevođenje tri verzije \strano{QEMU} skupa emulatora. Za  potvrdu uspešnosti instrumentalicije, može se vršiti provera prisustva fajlova sa ekstenzijom \strano{gcno} komandom \kod{find},  prisustvo funkcija  \kod{\_\_gcov\_init}, \kod{gcov\_exit} i \kod{drew\_coverage} komandom \kod{readlelf}. Očekivani rezultati podrazumevaju:
 \begin{enumerate}
-\item prisustvo fajlova sa ekstenzijom \strano{gcno} u direktorijumima: \strano{qemu\_test\_workspace/qemu\_version\_02} i \strano{qemu\_test\_workspace/qemu\_version\_03}, odnosno njihovo odsusvo u \strano{qemu\_test\_workspace/qemu\_version\_01}
+\item prisustvo fajlova sa ekstenzijom \strano{gcno} u direktorijumima: \\ \strano{qemu\_test\_workspace/qemu\_version\_02} \\ i \strano{qemu\_test\_workspace/qemu\_version\_03}, odnosno: \\ njihovo odsusvo u \strano{qemu\_test\_workspace/qemu\_version\_01}
 \item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{drew\_coverage} i odustvo funkcije \kod{gcov\_exit} u programima verzije \strano{qemu\_test\_workspace/qemu\_version\_03}
-3. prisustvo funkcija \kod{\_\_gcov\_init} i \kod{gcov\_exit} i odustvo funkcije \kod{drew\_coverage} u programima  \strano{qemu\_test\_workspace/qemu\_version\_02}
-4. odsustvo funkcija \kod{\_\_gcov\_init}, \kod{drew\_coverage} i \kod{gcov\_exit} u programima \strano{qemu\_test\_workspace/qemu\_version\_01}
+\item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{gcov\_exit} i odustvo funkcije \kod{drew\_coverage} u programima  \strano{qemu\_test\_workspace/qemu\_version\_02}
+\item odsustvo funkcija \kod{\_\_gcov\_init}, \kod{drew\_coverage} i \kod{gcov\_exit} u programima \strano{qemu\_test\_workspace/qemu\_version\_01}
 \end{enumerate}
 Dobijeni rezultati su u skladu sa očekivanim, što se jasno može videti na slici \ref{fig:qemu-test-1}, gde su prikazani rezultati sprovođenja prvog koraka testiranja.  
 
@@ -933,33 +975,47 @@ Dobijeni rezultati su u skladu sa očekivanim, što se jasno može videti na sli
 U okviru drugog koraka, sprovedena je ocena memorijske zahtevnosti. U tabeli \ref{tabela} prikazana je veličina celokupnog projekta, kao i nekoliko pojedinačnih programa unutar projekta, za sve tri verzije. Veličina je prikazana u bajtovima, kao i u obliku procenta regularne veličine. Može se primetiti da se korišćenjem dinamičke biblioteke ostvaruje ušteda od aproksimativno 1\% ukupne veličine.
 
 \begin{table}
-\caption{Tabela sa kvantitativnim podacima ocene memorije}
+\caption{Tabele sa kvantitativnim podacima ocene memorije}
 \label{tabela}
-\begin{tabular}{ |p{1.9cm}|p{1.5cm}|p{1.9cm}|p{1.5cm}|p{1.9cm}|p{1.5cm}|p{1.9cm}|p{1.5cm} | }
-% \hline
-% \multicolumn{4}{|c|}{Country List} \\
+\begin{tabular}{ |p{3.35cm}|p{3.2cm}|p{3.2cm}|p{3.2cm}|}
  \hline
-  \multicolumn{2}{|c|}{   } & \multicolumn{2}{|c|}{\strano{qemu\_version\_01}} &	\multicolumn{2}{|c|}{\strano{qemu\_version\_02}}	& \multicolumn{2}{|c|}{\strano{qemu\_version\_03}} \\
+ Veličina izražena u bajtovima & \strano{qemu\_version\_01} & \strano{qemu\_version\_02}	& \strano{qemu\_version\_03} \\
  \hline
- \multicolumn{2}{|c|}{   } &  B & \% &  B & \%  & B & \% \\
+ qemu-mips & 10556108 & 15203379  & 13598393 \\
  \hline
- \multicolumn{2}{|c|}{qemu-mips} & 10556108 & 100.0000 & 15203379 & 144.0245 & 13598393	& 128.8201 \\
+ qemu-arm & 10700765 & 14960036 & 13917673 \\
  \hline
- \multicolumn{2}{|c|}{qemu-arm} & 10700765 & 100.0000 & 14960036 & 139.8034 & 13917673 & 130.0624 \\
+ qemu-img& 6059717 & 8668398 & 8655375 \\
  \hline
-\multicolumn{2}{|c|}{qemu-img} & 6059717 & 100.0000 & 8668398 & 143.0496 & 8655375 & 142.8346 \\
+  qemu-system-mips & 34744091 & 47895829 & 46295066 \\
  \hline
-  \multicolumn{2}{|c|}{qemu-system-mips} & 34744091 & 100.0000 & 47895829 & 137.8532 & 46295066 & 133.2459 \\
+  qemu-system-arm & 40898483 & 55292999 & 54251070 \\
  \hline
-  \multicolumn{2}{|c|}{qemu-system-arm} & 40898483 & 100.0000 & 55292999 & 135.1957 & 54251070 & 132.6481 \\
+  qemu/ & 2457828029 & 3727564073 & 3697548246 \\
  \hline
-  \multicolumn{2}{|c|}{qemu/} & 2457828029 & 100.0000 & 3727564073 & 151.6609 & 3697548246 & 150.4397 \\
- \hline
-
- 
 \end{tabular}
-\end{table}
 
+\vspace{1em}
+
+\begin{tabular}{ |p{3.35cm}|p{3.2cm}|p{3.2cm}|p{3.2cm}|}
+ \hline
+ Veličina izražena u procentima & \strano{qemu\_version\_01} & \strano{qemu\_version\_02}	& \strano{qemu\_version\_03} \\
+ \hline
+ qemu-mips & 100.0000 & 144.0245 & 128.8201 \\
+ \hline
+ qemu-arm & 100.0000 & 139.8034 & 130.0624 \\
+ \hline
+qemu-img & 100.0000 & 143.0496 & 142.8346 \\
+ \hline
+  qemu-system-mips & 100.0000 & 137.8532 & 133.2459 \\
+ \hline
+  qemu-system-arm & 100.0000 & 135.1957 & 132.6481 \\
+ \hline
+  qemu/ & 100.0000 & 151.6609 & 150.4397 \\
+ \hline
+\end{tabular}
+
+\end{table}
 
 Treći korak testiranja obuhvata pokretanje svih šest programa u šest različitih terminala, sa ciljem lakšeg i boljeg poređenja.  Za pokretanje \strano{QEMU} emulatora u koje je linkovana dinamička biblioteka \strano{libcoverage}, preduslov je predstavljalo modifikovanje okruženja. Na vrednost promenljive \strano{LD\_LIBRARY\_PATH} se nadovezuje dodatno putanja do biblioteke \strano{libcoverage}. Prikaz drugog koraka je dat na slici \ref{fig:qemu-test-34}.
 
@@ -975,7 +1031,7 @@ Za spovođenje četvrtog koraka testiranja, koristiće se redukovani slučaj upo
 
 Procedura narednog koraka se razlikuje u zavisnosti od verzije. Izvršavanje neinstrumentalizovanih programa, više nije neophodno, te se prekidaju odabirom opcije: n. Programi čije podatke iz izvršavanja prikuplja standardna biblioteka \strano{libgcov} se takođe prekidaju na isti način. Statička biblioteka \strano{libgcov} će automatski obaviti funkconalnost kreiranja fajlova \strano{gcda} kao poslednju instrukciju. Pozivom alata \strano{gcov}, za svaki fajl izvornog koda, generišu se dva tipa izveštaja, čije se prisustvo i nepraznost uzimaju za potvrdu uspešnosti ovog koraka testiranja. Validacija je deo procedure narednog koraka. 
 
-Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve instance programa \strano{messanger}, zadužene za prijem signala \strano{SIGUSR1} i prosleđivanje odgovarajuće poruke preostalim aktivnim emulatorima. Unutar \strano{code\_coverage\_viewer}-a, odabira se radni direktorijum: \strano{test\_workspace/qemu\_version\_03/qemu/} i ime programa: \strano{messanger}. Klikom na dugme: \strano{Dump coverage data} kreiraju se fajlovi sa podacima iz dotadašnjeg izvršavanja. Klik na ugme: \strano{Generate gcov and fun files} inicira kreiranje izveštaja, čija se imena mogu videti u drolikoj komponenti grafičkog korisničkog interfejsa, a sadržaj, nakon selektovanja, u desnom polju. Prikaz terminala i ,\strano{code\_coverage\_viewer}-a za oba programa, nakon ovog koraka dat je na slici \ref{fig:qemu-test-5}
+Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve instance programa \strano{messanger}, zadužene za prijem signala \strano{SIGUSR1} i prosleđivanje odgovarajuće poruke preostalim aktivnim emulatorima. Unutar interfejsa \strano{code\_coverage\_viewer}, odabira se radni direktorijum: \\ \strano{test\_workspace/qemu\_version\_03/qemu/} i ime programa: \strano{messanger}. Klikom na dugme: \strano{Dump coverage data} kreiraju se fajlovi sa podacima iz dotadašnjeg izvršavanja. Klik na ugme: \strano{Generate gcov and fun files} inicira kreiranje izveštaja, čija se imena mogu videti u drolikoj komponenti grafičkog korisničkog interfejsa, a sadržaj, nakon selektovanja, u desnom polju. Prikaz terminala i ,\strano{code\_coverage\_viewer}-a za oba programa, nakon ovog koraka dat je na slici \ref{fig:qemu-test-5}
 
 \begin{figure}[!ht]
   \centering
@@ -997,11 +1053,11 @@ potvrđuju ispunjenost preostalih kriterijuma validacije ispisa.
   \label{fig:qemu-test-6a}
 \end{figure} 
 
-Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. Na slici \ref{fig:qemu-test-6b-1} su prikazani delovi izveštaja: \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/arm-linux-user/linux-user/signal.c.gcov} i \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/mips-linux-user/linux-user/signal.c.gcov}
-koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}.
-Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. Na slici \ref{fig:qemu-test-6b-2} su prikazani delovi izveštaja:
-\strano{qemu\_test\_workspace/qemu\_version\_03/qemu/arm-linux-user/linux-user/signal.c.gcov} i \strano{qemu\_test\_workspace/qemu\_version\_03/qemu/mips-linux-user/linux-user/signal.c.gcov}
-koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve inije koda koje se izvršavaju nakon poziva funkcije \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
+Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. Na slici \ref{fig:qemu-test-6b-1} su prikazani delovi izveštaja: \\ \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/arm-linux-user/linux-user/signal.c.gcov} \\ i \\ \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/mips-linux-user/linux-user/signal.c.gcov}
+koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \\ \kod{host\_signal\_handler}.
+Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. Na slici \ref{fig:qemu-test-6b-2} su prikazani delovi izveštaja: \\
+\strano{qemu\_test\_workspace/qemu\_version\_03/qemu/arm-linux-user/linux-user/signal.c.gcov} \\ i \\ \strano{qemu\_test\_workspace/qemu\_version\_03/qemu/mips-linux-user/linux-user/signal.c.gcov}\\
+koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \\ \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve linije koda koje se izvršavaju nakon poziva funkcije: \\ \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
 
 \begin{figure}[!ht]
   \centering
