@@ -487,7 +487,7 @@ U narednom tekstu biće detaljno opisane implementacije obe celine.
 
 \section{Implementacija biblioteke}
 
-Implementacija biblioteke \strano{libcoverage} je izvršena u programskom jeziku C. Uzor je predstavljala postojeća bibloteka \strano{libgcov}, podrazumevana biblioteka za prikupljanje podataka iz izvršavanja programa u okviru programskog prevodioca \strano{gcc}. Implementacija biblioteke libcoverage je izvšena u četiri faze:
+Implementacija biblioteke \strano{libcoverage} je izvršena u programskom jeziku C. Uzor je predstavljala postojeća bibloteka \strano{libgcov}, podrazumevana biblioteka za prikupljanje podataka iz izvršavanja programa u okviru programskog prevodioca \strano{gcc}. Implementacija je izvšena u četiri faze:
 \begin{enumerate}
 \item konstrukcija baze biblioteke kao potrebnog i dovoljnog skupa funkcija iz koda prevodioca i biblioteke \strano{libgcov} za prikupljanje podataka
 \item modifikacija vremenskog parametra funkcionalnosti prikupljanja podataka iz izvršavanja, u cilju dostupnosti podataka u toku rada programa
@@ -504,16 +504,32 @@ Ostatak koda koji je preuzet iz \strano{gcc}-a, bilo u celosti, parcijalno ili u
 
 Druga faza implementacije obuhvatala je potrebne modifikacije u cilju postizanja prikupljanja podataka iz izvršavanja programa u toku njegovog rada. Rad alata \strano{gcov}, koji rezultuje finalnim izveštajima, nije zavistan od izvršavanja programa, već samo od dostupnosti ulaznih argumenata: izvornog koda i fajlova \strano{gcno} i \strano{gcda}. Kako su fajlovi \strano{gcno} dostupni već nakon prevođenja izvornog koda do objektnih fajlova, za ostvarenje željene funkcionalnosti je potrebno i dovoljno modifikovati trenutak nastajanja fajlova \strano{gcda}. Uslovljenost završetkom rada programa, je suštinski uzrokovana time što se u okviru funkcije \kod{\_\_gcov\_init}, za čije je bezuslovno izvršavanje dovoljno prevesti k\^{o}d sa instrumentalizacionim flegovima, poziva funkcija \kod{gcov\_exit} kao argument \kod{atexit} funkcije standardne biblioteke \strano{stdlib}. Eliminacijom ovog poziva, postignut je prvi korak ka prikupljanju podataka u proizvoljnom trenutku rada programa. Nakon ovog koraka, naziv \kod{gcov\_exit} je postao neprikladan i konfuzan, pa je izvršena njegova korekcija. U novoj biblioteci \strano{libcoverage}, funkcija \kod{gcov\_exit} je preimenovana u \kod{drew\_coverage} \footnote{Na odabir naziva uticale su isključivo estetske i lične preferencije autora.}. Drugi korak predstavlja pružanje mogućnosti korisniku da sam odabere trenutak u kome će se poziv funkcije izvršiti. Zaglavlje \strano{coverage.h}, koje takođe ulazi u izgradnju nove biblioteke, sadrži deklaraciju funkcije: \kod{drew\_coverage}. Stoga je dovoljno da se u korisnčkom kodu, na željenoj lokaciji, uključi ovo zaglavlje ili funkcija navede kao eksterna, a zatim regularno pozove. Razrešavanje simbola nastalih ovim pozivom, biće obavljeno u fazi linkovanja biblioteke \strano{libcoverage.so}.
 
-Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, implementirana je i mogućnost poziva korišćenjem signala \strano{SIGUSR1}. Za ostvarivanje ove pogodnosti, neophodno je navesti u fazi linkovanja dodatni objektni fajl: \strano{coverage\_registration.o}. K\^{o}d, čijim prevođenjem nastaje ovaj objektni fajl, prikazan je na slici \ref{fig:registrator}. Pisan je u programskom jeziku C i u celosti se nalazi u okviru fajla:  \strano{coverage\_registration.c}. Sastoji se iz dve funckije: \kod{coverage\_handler} i \kod{coverage\_signal\_registry}. Prva funkcija predstavlja alternativni \strano{signal-handler} za \strano{SIGUSR1}, u okviru koga se izvršava poziv funkcije: \kod{drew\_coverage}. Druga funkcija je zadužena za registrovanje funkcije \kod{coverage\_handler} kao \strano{signal-handler} za \strano{SIGUSR1}, a korišćenjem \kod{\_\_attribute\_\_((constructor))} principa, vezana je za sam početak izvršavanja instrumentalizovanog programa. 
+Za korisnike \strano{Unix}-a i \strano{Unix}-olikih operativnih sistema, implementirana je i mogućnost poziva korišćenjem signala \strano{SIGUSR1}. Za ostvarivanje ove pogodnosti, neophodno je navesti u fazi linkovanja dodatni objektni fajl: \strano{coverage\_registration.o}. K\^{o}d, čijim prevođenjem nastaje ovaj objektni fajl, prikazan je u okviru listinga \ref{registrator}. Pisan je u programskom jeziku C i u celosti se nalazi u okviru fajla:  \strano{coverage\_registration.c}. Sastoji se iz dve funckije: \kod{coverage\_handler} i \kod{coverage\_signal\_registry}. Prva funkcija predstavlja alternativni \strano{signal-handler} za \strano{SIGUSR1}, u okviru koga se izvršava poziv funkcije: \kod{drew\_coverage}. Druga funkcija je zadužena za registrovanje funkcije \kod{coverage\_handler} kao \strano{signal-handler} za \strano{SIGUSR1}, a korišćenjem \kod{\_\_attribute\_\_((constructor))} principa, vezana je za sam početak izvršavanja instrumentalizovanog programa. 
 Korišćenje ove metode je opciono i zavisi isključivo od želje korisnika i mogućnosti korišćenja signala datog programa. Ukoliko operativni sistem ne podržava \strano{POSIX} signale ili korisnički k\^{o}d predefiniše signal \strano{SIGUSR1}, ovaj princip se ne može koristiti.
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/coverage-registration-code.png}
-  \caption{Izvorni k\^{o}d u okviru fajla: \strano{coverage\_registration.c}}
-  \label{fig:registrator}
-\end{figure}
+\newpage
 
+\begin{lstlisting}[caption={Izvorni k\^{o}d u okviru fajla: \strano{coverage\_registration.c}},frame=single, label=registrator]
+#include <stdio.h>                                                       
+#include <signal.h>                                                      
+#include <unistd.h>     
+
+#define COVERAGE_SIGNAL SIGUSR1
+extern void drew_coverage();
+
+void coverage_handler(int signo){
+    if (signo==COVERAGE_SIGNAL){
+         printf("Dumping coverage data... \n");
+	 drew_coverage();
+    }
+}
+
+__attribute__((constructor))
+void coverage_signal_registry(){
+    printf("Registrating signal SIGUSR1 for coverage data dump...\n");
+    signal(SIGUSR1,coverage_handler);
+}
+\end{lstlisting}
 
 Pored osnovnih izmena, izvršene su i dve manje modifikacije funkcije za prikupljanje podataka i kreiranje fajlova gcda. Konstanta \kod{GCOV\_LOCKED}, definisana pretprocesorskom direktivom, a korišćena u cilju sprečavanja paralelizacije rada funkcije \strano{gcov\_exit} iz biblioteke \strano{libgcov} i alata \strano{gcov}, izbačena je iz upotrebe. U novom pristupu, paralelizacija procesa prikupljanja i obrade podataka je, iako bezbednosni izazov, poželjna osobina. Međutim, celokupni k\^{o}d koji koristi globalnu promenljivu \kod{gcov\_dump\_complete}, zadužen za sprečavanje višestrukog izbacivanja podataka o izvršavanju programa, kao i sama promenljiva nisu eliminisani. Bez alternativnog mehanizma odbrane, eliminacija ove funkcionalnosti bi dovela do netačnih vrednosti u izveštaju, odnosno vrednosti multipliciranih brojem poziva funkcije za ispis. Prebacivanje odgovornosti premeštanja starih fajlova \strano{gcda} pre novog poziva funkcije, nije prihvatljivo rešenje sa stanovišta bezbednosti i jednostavnosti upotrebe, dok bi automatsko naknadno prepakivanje fajlova \strano{gcda} narušilo kompatibilnost sa postojećim interfejsom trenutne implementacije. 
 
@@ -522,15 +538,21 @@ Cilj treće faze implementacije predstavlja uklanjanje zavisnosti biblioteke od 
 Ukidanje zavisnosti biblioteke od prevodioca, odnosno omogućavanje njenog samostalnog prevođenja, prouzrokovalo je da biblioteka izgubi informaciju o verziji prevodioca. Različitost implementacije instrmentalizacije i prikupljanja podataka kroz verzije prevodioca \strano{gcc}, morala se prevazići ograničavanjem na konkretnu verziju ili dodatnim modifikacijama. Kako prva opcija suštinski poništava efekat nezavisnosti biblioteke, doneta je odluka da se, u okviru četvrte faze implementacije, izvrše dodatna prilagođavanja koda biblioteke u cilju postizanja što veće multiverzionalnosti. U okviru izmena koje su objavljene pod verzijom 4.7.0. izvršen je i veći redizajn, ne samo procesa prikupljanja podataka, već i samog formata instrumentalizacionih struktura. Prilagođavanje biblioteke radu sa strukturama definisanim na stari način, iziskivalo bi izgradnju potpuno nove biblioteke, što je u datom trenutku bio nepotreban napor. Takođe, aktuelna verzija \strano{gcc}-a u vreme ove implementacije je bila 6.2. što predstavlja gornje ograničenje multiverzionalnosti biblioteke \strano{libcoverage.so}. Kasnijom analizom utvrđena je kompatibilnost i sa ostalim podizdanjima u okviru izdanja 6. U cilju izgradnje jedinstvene biblioteke za sve verzije \strano{gcc}-a, počevši od 4.7.0. i zaključno sa 6.5.0., najpre su iz koda eliminisane sve provere verzije prevodioca, alata \strano{gcov} i fajlova \strano{gcno} i \strano{gcda}. 
 
 Uveden je novi mehanizam određivanja verzije koji osigurava isključivo poklapanje verzije u fajlovima \strano{gcno} i \strano{gcda}, neophodno za rad alata \strano{gcov}. 
-Globane vrednosti unutar same biblioteke koje su zavisne od verzije prevodioca, prilagođavaju se verziji pretprocesorskim direktivama. Prilagođavanje količine brojača koji se koriste za instrumentalizaciju, definisane promenljivom \kod{GCOV\_COUNTERS} prikazano je na slici \ref{fig:brojaci}.
-\\
+Globane vrednosti unutar same biblioteke koje su zavisne od verzije prevodioca, prilagođavaju se verziji pretprocesorskim direktivama. Prilagođavanje količine brojača koji se koriste za instrumentalizaciju, definisane promenljivom \kod{GCOV\_COUNTERS} prikazano je u okviru listinga \ref{brojaci}.
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/GCOV_COUNTERS.png}
-  \caption{Definisanje količine brojača u zavisnosti od verzije prevodioca}
-  \label{fig:brojaci}
-\end{figure}
+\newpage
+
+\begin{lstlisting}[caption={Definisanje količine brojača u zavisnosti od verzije prevodioca},frame=single, label=brojaci]
+#if __GNUC__ == 6
+#define GCOV_COUNTERS 10
+#elif __GNUC__ == 5 && __GNUC_MINOR__ >= 1
+#define GCOV_COUNTERS 10
+#elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
+#define GCOV_COUNTERS 9
+#else
+#define GCOV_COUNTERS   8
+#endif
+\end{lstlisting}
 
 Poslednja faza implementacije obuhvata izmene vršene u cilju vremenske i prostorne optimizacije. U starijim verzijama prevodioca \strano{gcc}, računanje glavne kontrolne sume programa se obavljalo na početku izvršavanja, u okviru funkcije \kod{\_\_gcov\_init}. Korišćen je mehanizam pod nazivom: ciklična provera pariteta bloka, nad statičkim podacima programa (imena instrumentalizovanih fajlova izvornog koda). Od verzije 4.7.0., uveden je novi algoritam, po kome se ova kontrolna suma računa u toku čitanja podataka iz instrumentalizacionih struktura, u okviru funkcije \kod{gcov\_exit}. Mehanizam ciklične provere pariteta bloka je zadržan, ali je skup podataka potpuno izmenjen. Umesto imena fajlova, koriste se drugi statički podaci, kao što je broj funkcija, a uključeni su i dinamicki podaci, odnosno vrednosti brojača. Eventualna oštecenja podataka će sa dovoljno velikom verovatnoćom biti detektovana u kontrolnim sumama pojedinačnih entiteta, pre svega funkcija, pa dinamičko računanje kontrolne sume programa troši više vremena nego što doprinosi. Stoga su, u novoj biblioteci, kontrolne sume implementirane po uzoru na verziju 4.6.0. 
 
@@ -538,15 +560,15 @@ Dodatna optimizacija postignuta je redukovanjem broja sistemskih poziva za ispis
 
 Računanje vrednosti histograma je takođe izbačeno iz trenutne implementacije biblioteke \strano{libcoverage}, pošto se vrednosti nisu koristile ni u jednom dokumentovanom slučaju upotrebe. Prisustvo histograma je zadržano isključivo u definiciji odgovarajuće instrumentalizacione strukture, u cilju kompatibilnosti sa prevodiocem. 
 
-Manja ušteda prostora je ostvarena i uvođenjem pravolinijskog prolaska kroz strukture. Umesto alociranja privremenog pokazivača na međustrukturu, kao što je prikazano u gorenjem delu slike \ref{fig:pristup}, korišćen je pravolinijski pristup prikazan u donjem delu iste slike. 
-\\ 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=0.8\textwidth]{img/cut_the_middleman.png}
-  \caption{Pristup instrumentalitacionim strukturama}
-  \label{fig:pristup}
-\end{figure}
+Manja ušteda prostora je ostvarena i uvođenjem pravolinijskog prolaska kroz strukture. Umesto alociranja privremenog pokazivača na međustrukturu, kao što je prikazano u gorenjem delu slike \ref{pristup}, korišćen je pravolinijski pristup prikazan u donjem delu iste slike. 
 
+\begin{lstlisting}[caption={Pristup instrumentalitacionim strukturama},frame=single, label=pristup]
+definicija: gfi_ptr = gi_ptr->functions[f_ix];
+definicija: ci_ptr = gfi_ptr->ctrs;
+pristup:    ci_ptr->values;
+==>	
+pristup:    gi_ptr->functions[f_ix]->ci_ptr->values
+\end{lstlisting}
 
 \section{Implementacija grafičkog interfejsa}
 
@@ -556,7 +578,7 @@ Grafički korisnički interfejs se sastoji iz dve celine: kontrolne i prezentaci
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/GUI_1.png}
+  \includegraphics[width=\textwidth]{img/GUI_1_ng.png}
   \caption{Grafički interfejs po pokretanju}
   \label{fig:GUI1}
 \end{figure}
@@ -584,14 +606,14 @@ Na samom dnu leve celine nalazi se skup od četiri komponente koje služe za odr
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/GUI_2.png}
+  \includegraphics[width=\textwidth]{img/GUI_2_ng.png}
   \caption{Odabir radnog direktorijuma u grafičkom interfejsu}
   \label{fig:GUI2}
 \end{figure}
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/GUI_3.png}
+  \includegraphics[width=\textwidth]{img/GUI_3_ng.png}
   \caption{Generisana celokupna statistika u grafičkom interfejsu}
   \label{fig:GUI3}
 \end{figure}
@@ -602,7 +624,7 @@ Linija menija je implementirana korišćenjem klase \kod{wx.MenuBar}. Sadrži im
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/GUI_4.png}
+  \includegraphics[width=\textwidth]{img/GUI_4_ng.png}
   \caption{Prozor za pomoć u grafičkom interfejsu}
   \label{fig:GUI4}
 \end{figure}
