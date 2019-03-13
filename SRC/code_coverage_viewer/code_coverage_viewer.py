@@ -418,7 +418,7 @@ class MainFrame(wx.Frame):
 		if self.executable != 0:
 			self.executed_display.SetValue(str(self.executed))
 			self.executable_display.SetValue(str(self.executable))
-			self.coverage = round(float(self.executed)/self.executable, 4)
+			self.coverage = round((float(self.executed)/self.executable)*100, 4)
 			self.coverage_display.SetValue(str(self.coverage)+"%")
 		else:
 			error_message_dialog = wx.MessageDialog(self, "Your project code does not contain any executable line. Coverage can not be calculated.", "Warrning", wx.OK | wx.ICON_ERROR)
