@@ -652,7 +652,7 @@ U okviru analize performansi softverskog rešenja za prikupljanje i prikaz podat
 
 Bezbednost predstavlja jednu od najvažnijih karakteristika softvera kao proizvoda, naročito kada je reč o višenamenskim rešenjima, kao što je slučaj sa bibliotekom \strano{libgcov}. Od nivoa ispunjenosti ovog kriterijuma, direktno zavisi i djapazon potencijalne upotrebe softverskog rešenja. U okruženja koja predstavljaju naročiti bezbednosni izazov svrstavamo najpre one sisteme od čije ispravne funkcionalnosti zavise ljudski životi, ekonomski značajni resursi i poverljivost važnih informacija. Teorijsko ispitivanje bezbednosti rešenja opisanog u ovom radu je izvršeno analizom upravljanja memorijskim resursima i mogućnosti neovlašćenog pristupa. 
 
-Analizom izvornog koda biblioteke \strano{libcoverage}, utvrđeno je da se ukupna dinamički alocirana memorija, oslobođa naredbama:\\ \kod{free(gcov\_var.buffer); fclose(gcov\_var.file);} \\
+Analizom izvornog koda biblioteke \strano{libcoverage}, utvrđeno je da se ukupna dinamički alocirana memorija, oslobođa naredbama: \kod{free(gcov\_var.buffer)} i \\ \kod{fclose(gcov\_var.file)} \\
 Za dokazivanje ove tvrdnje, odnosno detektovanje eventualnog nepravilnog upravljanja memorijom, iskorišćen je standardni alat za memorijsko profajliranje: \strano{Valgrind}. Ovaj alat nema mogućnost ispitivanja biblioteke, kao neizvršne jedinice sistema, zbog čega je bilo neophodno analizu sprovesti nad eksternim izvršnim programom. Korektnost rezultata je postignuta uključivanjem biblioteke u sistem, čija je bezbednost unapred potvrđenjena istim alatom. Porukom: \strano{ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)}, dokazano je da biblioteka ne prouzrokuje curenje memorije, pisanje van alociranog prostora, niti slične propuste. 
 
 Neovlašćeni pristup podacima programa je sprečen prirodom rešenja za prikupljanje i prikaz podataka. Implementacija softverskog rešenja za prikupljanje u vidu biblioteke, nasuprot eksternog alata, čini program jedinim vlasnikom podataka sopstvene deljene memorije. Rešenje koje za formatiranje i prikaz, koji za transport i obradu podataka ne koristi internet, niti bilo koju drugu mrežu, je dodatno otpornim na napade eksterne prirode. Time je ispunjen bezbednosni aspekt zaštite podataka od neovlašćenog pristupa. 
@@ -683,26 +683,85 @@ Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{c
 
 \subsubsection{Opis koda primera}
 
-Program \strano{lucky} računa srećan broj na osnovu datuma rođenja, rekurzivnim sabiranjem cifara do jednocifrenog broja. Sastoji se iz dva fajla izvornog koda, pisanih u programskom jeziku C: \strano{main.c} i \strano{lucky.c}. 
+Program \strano{lucky} računa srećan broj na osnovu datuma rođenja, rekurzivnim sabiranjem cifara do jednocifrenog broja. Sastoji se iz dva fajla izvornog koda, pisanih u programskom jeziku C: \strano{main.c} i \strano{lucky.c}.
+\\ 
 
-U okviru fajla \strano{main.c} nalazi se glavna funkcija programa koja čita datum rođenja sa standarnog ulaza, proverava validnost, poziva funkciju za računanje srećnog broja i ispisuje rezultat na standardni izlaz. Osnovna funkcionalnost se vrši u okviru beskonačne \kod{while} petlje, čija je jedinica prolaska jedno računanje srećnog broja. Na početku \kod{while} petlje, implementiran je i mehanizam za prekid izvršavanja. Pored glavne funkcije, fajl main.c, sadrži još i definicije funkcija za ispisivanje poruka dolaznog i odlaznog pozdrava, koje se pozivaju na početku i na kraju izvršavanja. Kod ovog fajla je prkazan na slici \ref{fig:lucky1}.
+\begin{lstlisting}[caption={Izvorni kod: \strano{main.c}},frame=single, label=lucky1]
+#include <stdio.h>
+void greeting(){
+	printf("Hello, I am a program that calculates your lucky number\n");
+}
+void farewell(){
+	printf("Goodbye\n");
+}
+int main(){
+	greeting();
+	while(1){
+		printf("Please, enter y/n to procced/end program\n");
+		char c;
+		scanf("\n%c", &c);
+		if(c == 'n'){
+			break; 
+		}
+		else if(c == 'y'){
+			int date, month, year;
+			printf("Enter your year of birth: ");
+			scanf("%d", &year);
+			while(year<1900 || year>3000){
+				printf("Please enter year between 1900 and 3000: ");
+				scanf("%d", &year);
+			}
+			printf("Enter your month of birth: ");
+			scanf("%d", &month);
+			while(month<1 || month>12){
+				printf("Please enter month between 1 and 12: ");
+				scanf("%d", &month);
+			}
+			printf("Enter your date of birth: ");
+			scanf("%d", &date);
+			while((month==2 && (date<1 || date >29)) || ((month==4 || month==6 || month==9 || month==11) && (date<1 || date >30)) || ((month==1 || month==3 || month==5 || month==7 || month==8 || month==10 || month==12) && (date<1 || date >31)) || (((year%400)!=0 && ((year%4)!=0 || (year%100)==0)) && month==2 && date==29)){
+				printf("Please enter correct date of %d. month and %d. year: ", month, year);
+				scanf("%d", &date);
+			}	
+			int lucky = calculate_lucky_number(date,month,year);
+			printf("Your lucky number is: %d\n",lucky);
+		}
+	}
+	farewell();
+	return 0;
+}
+\end{lstlisting}
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/main.png}
-  \caption{Izvorni kod: \strano{main.c}}
-  \label{fig:lucky1}
-\end{figure}
+\begin{lstlisting}[caption={Izvorni kod: \strano{lucky.c}},frame=single, label=lucky2]
+int to_digit(int value){
+	if (value < 10) 
+		return value;
+	else{
+		int sum = 0;
+		int base = value;
+		int leftover = 0;
+		while (base != 0){
+			leftover = base % 10;
+			sum = sum + leftover;
+			base = base / 10;
+		}
+		return to_digit(sum);
+	}
+}
+int calculate_lucky_number(int day, int month, int year){
+	int day_code = to_digit(day);
+	int month_code = to_digit(month);
+	int year_code = to_digit(year);
+	int sum_codes = day_code + month_code + year_code;
+	int final_code = to_digit(sum_codes);
+	return final_code;
+}
+\end{lstlisting}
 
-Fajl \strano{lucky.c} sadrži definicije dve funkcije, osnovne i pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. Kod fajla lucky.c prikazan je na slici \ref{fig:lucky2}.
+U okviru fajla \strano{main.c} nalazi se glavna funkcija programa koja čita datum rođenja sa standarnog ulaza, proverava validnost, poziva funkciju za računanje srećnog broja i ispisuje rezultat na standardni izlaz. Osnovna funkcionalnost se vrši u okviru beskonačne \kod{while} petlje, čija je jedinica prolaska jedno računanje srećnog broja. Na početku \kod{while} petlje, implementiran je i mehanizam za prekid izvršavanja. Pored glavne funkcije, fajl main.c, sadrži još i definicije funkcija za ispisivanje poruka dolaznog i odlaznog pozdrava, koje se pozivaju na početku i na kraju izvršavanja. Kod ovog fajla je prkazan na listingu \ref{lucky1}.
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/lucky.png}
-  \caption{PIzvorni kod: \strano{lucky.c}}
-  \label{fig:lucky2}
-\end{figure}
-
+Fajl \strano{lucky.c} sadrži definicije dve funkcije, osnovne i pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. Kod fajla lucky.c prikazan je na listingu \ref{lucky2}.
+\\
 \subsubsection{Plan testiranja}
 
 Za potrebe testiranja, kreiraju se tri verzije programa lucky:
@@ -722,10 +781,12 @@ Plan za testiranje je definisan sledećim koracima:
 \kod{gcc lucky.o main.o -o lucky-vers1}
 \item verzija sa instrumentalizacijom i standardnom bibliotekom \strano{libgcov} se prevodi sa dotatnim flegovima \kod{-fprofile-arcs} i \kod{-ftest-coverage} i u prvom koraku za instrumentalizaciju, a i u drugom za definisanje korišćenja standardne biblioteke \strano{libgcov}: \\
 \kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage} \\
-\kod{gcc lucky.o main.o –o lucky-vers2 -fprofile-arcs -ftest-coverage}
+\kod{gcc lucky.o main.o –o lucky-vers2 \textbackslash} \\
+\hspace*{6mm} \kod{-fprofile-arcs -ftest-coverage}
 \item verzija sa instrumentalizacijom i novom bibliotekom libcoverage se prevodi sa dotatnim flegovima \kod{-fprofile-arcs -ftest-coverage} isključivo u prvom koraku za instrumentalizaciju, dok se linkeru prosleđuju biblioteka \strano{libcoverage} i objektni fajl: \strano{coverage\_registration.o}: \\
 \kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage} \\
-\kod{gcc lucky.o main.o -o lucky-vers3 –L<putanja do biblioteke libcoverage> -lcoverage <putanja do coverage\_registration>/coverage\_registration.o}
+\kod{gcc lucky.o main.o -o lucky-vers3 \textbackslash} \\ \hspace*{6mm} \kod{–L<putanja do biblioteke libcoverage> -lcoverage \textbackslash} \\
+\hspace*{6mm} \kod{<putanja do registratora/coverage\_registration.o}
 \end{enumerate}
 
 \item pokretanje programa:
@@ -743,14 +804,15 @@ Plan za testiranje je definisan sledećim koracima:
 \item odabir opcije: \kod{y}
 \item unos: \kod{1992 <enter> 12 <enter> 17}
 \item odabir opcije \kod{y}
-\item unos: \kod{3001 <enter> 1992 <enter> 15 <enter> 12  <enter> 38 <enter> 17}
+\item unos: \kod{3001 <enter> 1992 <enter> 15 <enter>}
+\item unos: \kod{12  <enter> 38 <enter> 17}
 \end{enumerate}
 \item Sprovodjenje završnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
 \begin{enumerate}
 \item program: \strano{lucky-vers1} se prekida odabirom opcije: n
 \item program: \strano{lucky-vers2} se prekida odabirom opcije: n i generišu se izveštaji: \\
 \kod{ gcov lucky.c –f  > lucky.fun} \\
-\kod{ gcov main.c –f  > main.fun;}
+\kod{ gcov main.c –f  > main.fun}
 \item program \strano{lucky-vers3} se ne prekida u cilju demonstracije prikupljanja i prikaza podataka u toku izvršavanja; sprovode se sledeći koraci:
 \begin{enumerate}
 \item Pokreće se grafički korisnički interfejs code\_coverage\_viewer
@@ -801,10 +863,10 @@ Pre početka testiranja, neophodno je kreirati radno okruženje, sledećim nared
 \kod{mkdir test\_workspace/version\_03} \\
 \kod{cp lucky.c main.c test\_workspace/version\_01} \\
 \kod{cp lucky.c main.c test\_workspace/version\_02} \\
-\kod{cp lucky.c main.c test\_workspace/version\_03} \\
+\kod{cp lucky.c main.c test\_workspace/version\_03} 
 \item kreiranje direktorijuma sa bibliotekom \strano{libcoverage} i registratorom signala: \\
 \kod{mkdir test\_workspace/runtime\_coverage} \\
-\kod{cp libcovergage.so test\_workspace/runtime\_coverage} \\
+\kod{cp libcoverage.so test\_workspace/runtime\_coverage} \\
 \kod{cp coverage\_registration.o test\_workspace/runtime\_coverage} \\ 
 \kod{cp code\_coverage\_viewer.py test\_workspace/runtime\_coverage}
 \end{enumerate}
@@ -817,11 +879,11 @@ Prvi korak testiranja obuhvata prevođenje programa na tri načina. Objektni i i
 \item odsustvo funkcija \kod{\_\_gcov\_init}, \kod{drew\_coverage} i \kod{gcov\_exit} u programu \strano{lucky-vers1}
 \end{enumerate}
 
- što predstavlja ispravne rezultate. Sprovođenje prvog koraka testiranja i rezultati istog, prikazani su na slici \ref{fig:lucky-test-1}.
+\noindent što predstavlja ispravne rezultate. Sprovođenje prvog koraka testiranja i rezultati istog, prikazani su na slici \ref{fig:lucky-test-1}.
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky1.png}
+  \includegraphics[width=\textwidth]{img/lucky1-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 1}
   \label{fig:lucky-test-1}
 \end{figure}
@@ -830,7 +892,7 @@ Drugi korak obuhvata pokretanje sva tri programa u tri različita terminala, kak
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky2.png}
+  \includegraphics[width=0.9\textwidth]{img/lucky2-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Koraci 2 i 3}
   \label{fig:lucky-test-2}
 \end{figure}
@@ -841,7 +903,7 @@ Naredni korak predstavlja najbitniji korak testiranja. Materijal generisan u ovo
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky3.png}
+  \includegraphics[width=\textwidth]{img/lucky3-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Koraci 4.a i 4.b}
   \label{fig:lucky-test-3}
 \end{figure}
@@ -850,7 +912,7 @@ Program \strano{lucky-vers3} se ne prekida odmah, već se najpre vrši kreiranje
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky4.png}
+  \includegraphics[width=\textwidth]{img/lucky4-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 4c}
   \label{fig:lucky-test-4}
 \end{figure}
@@ -861,7 +923,7 @@ Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky5.png}
+  \includegraphics[width=0.9\textwidth]{img/lucky5-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5a}
   \label{fig:lucky-test-5}
 \end{figure}
@@ -872,7 +934,7 @@ Linux komandom \strano{diff} ili jednostavnim posmatranjem može se potvrditi da
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky6.png}
+  \includegraphics[width=\textwidth]{img/lucky6-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5b}
   \label{fig:lucky-test-6}
 \end{figure}
@@ -883,7 +945,7 @@ Pristup koji je trenutno implementiran u okviru prevodioca \strano{gcc} nema ugr
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky7.png}
+  \includegraphics[width=\textwidth]{img/lucky7-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5c}
   \label{fig:lucky-test-7}
 \end{figure}
@@ -931,21 +993,77 @@ Očekivana složenost ovog procesa u slučaju prosečnog, većeg projekta, je iz
 
 Po ugledu na opciju: \kod{--enable gcov}, u skriptu za konfigurisanje je uvedena nova opcija: \kod{--enable-runtime-gcov}, koja takođe uslovljava uključivanje flegova za instrumentalizaciju u toku prevođenja izvornog fajla do objektnog, ali u proces linkovanja umesto njih uslovljava prisustvo dinamičke biblioteke \strano{libcoverage} i objektnog fajla za registraciju signala. Ispisivanje odgovarajućih vrednosti u konfiguracioni fajl: \strano{config\_host.mak} urađen je identično kao u slučaju postojeće opcije \kod{--enable gcov}. 
 
-Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikpljanja podaka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure} u git formatu, prikazane su na slici \ref{fig:qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su na slici \ref{fig:qemu-diff-2}. 
+Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikpljanja podaka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure} u git formatu, prikazane su na listingu \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su na listingu \ref{qemu-diff-2}. 
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/configure.png}
-  \caption{Izmene skripte \strano{configure}}
-  \label{fig:qemu-diff-1}
-\end{figure}
+\newpage
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/exit.png}
-  \caption{Izmene fajla \strano{linux-user/exit.c}}
-  \label{fig:qemu-diff-2}
-\end{figure}
+\begin{lstlisting}[caption={Izmene skripte \strano{configure}},frame=single, label=:qemu-diff-1]
+diff --git a/configure b/configure
+
+@@ -389,6 +389,7 @@ tcg_interpreter="no"
+ gcov="no"
++runtime_gcov="no";
+ gcov_tool="gcov"
+
+@@ -1002,6 +1003,8 @@ for opt do
+   ;;
++  --enable-runtime-gcov) runtime_gcov="yes"
++  ;;
+   --static)
+
+@@ -1676,6 +1679,7 @@ Advanced options 
+   --enable-gcov            enable test coverage analysis with gcov
++  --enable-runtime-gcov     enable runtime coverage analysis with gcov
+   --gcov=GCOV              use specified gcov [$gcov_tool]
+
+@@ -5675,6 +5679,10 @@ write_c_skeleton
+   LDFLAGS="-fprofile-arcs -ftest-coverage $LDFLAGS"
++elif test "$runtime_gcov" = "yes" ; then
++  CFLAGS="-fprofile-arcs -ftest-coverage -g -DRUNTIME_GCOV $CFLAGS"
++  LDFLAGS="-L\$(BUILD_DIR)/code_coverage_lib -lcoverage $LDFLAGS"
++  LDFLAGS="\$(BUILD_DIR)/code_coverage_lib/coverage_registration.o $LDFLAGS"
+ elif test "$fortify_source" = "yes" ; then
+ 
+@@ -6128,6 +6136,7 @@ echo "crypto afalg      
+ echo "gcov enabled      $gcov"
++echo "runtime gcov enabled $runtime_gcov"
+ echo "TPM support       $tpm"
+
+@@ -7023,6 +7032,11 @@ if test "$gcov" = 
+ fi
++if test "$runtime_gcov" = "yes" ; then
++  echo "CONFIG_GCOV=y" >> $config_host_mak
++  echo "GCOV=$gcov_tool" >> $config_host_mak
++fi
++
+if test "$docker" != "no"; then
+\end{lstlisting}
+
+\newpage
+\begin{lstlisting}[caption={Izmene fajla \strano{linux-user/exit.c}},frame=single, label=:qemu-diff-2]
+diff --git a/linux-user/exit.c b/linux-user/exit.c
+
+@@ -19,17 +19,22 @@
+ #include "qemu.h"
++#ifndef RUNTIME_GCOV
+ #ifdef CONFIG_GCOV
+ extern void __gcov_dump(void);
+ #endif
++#endif
+ 
+ void preexit_cleanup(CPUArchState *env, int code)
+ {
+ #ifdef TARGET_GPROF
+         _mcleanup();
+ #endif
++
++#ifndef RUNTIME_GCOV
+ #ifdef CONFIG_GCOV
+         __gcov_dump();
+ #endif
++#endif
+         gdb_exit(env, code);
+\end{lstlisting}
 
 Testiranjem funkcionalnosti implementirane u toku prve iteracije, detektovana je prva smetnja u ispravnom radu podrške za prikupljanje i prikaz podataka u toku izvršavanja. Detaljnom analizom je utvrđeno da se uprkos uspešnoj registraciji funkcije \kod{coverage\_handler} kao \strano{signal-handler}-a za \strano{SIGUSR1}, k\^{o}d unutar te funkcije ne izvršava. Uzrok ove pojave je predfinisanje svih signala u kodu korisničkih emulatora \strano{QEMU}-a. Kako bi obezbedio emulaciju maksimalnog kvaliteta koja uključuje i podršku za slanje i prijem \strano{POSIX} signala, sve primljene signale \strano{QEMU} prosleđuje emuliranom korisničkom programu. Poruka karakteristična za signal \strano{SIGUSR1}, koja je ispisana tokom testiranja rezultata prve iteracije, nije dakle vodila poreklo iz \strano{QEMU}-a već iz emuliranog korisničkog programa. U cilju prevazilaženja ove prepreke, sprovedena je druga iteracija implementacije podrške za prikupljanje i prikaz podataka u toku izvršavanja, u okviru koje je osmišljen i realizovan novi algoritam za prijem i obradu signala instrumentalizovane verzije \strano{QEMU}-a. 
 
@@ -954,29 +1072,82 @@ Promena konkretnog signala ne bi proizvela drugačije rezultate, usled maksimaln
 Inicijalni plan ugrađivanja podrške za pokretanje prikupljanja podataka iz izvršavanja \strano{POSIX} signalom, podrazumevao je bezuslovnu modifikaciju ponašanja uslovljenog prijemom signala \strano{SIGUSR1} u okviru funkcije \strano{host\_signal\_handler}. Razmatran je zbog svoje jednostavnosti i lakoće implementacije. Međutim, usled nemogućnosti pravilnog razlikovanja upotebe signala \strano{SIGUSR1} kao okidača prikupljanja podataka o pokrivenosti i slučaja kada ga treba prosledti emuliranom programu, nastala je potreba za dodatnim usavršavanjem. 
 Na formiranje nove ideje uticalo je posmatranje argumentata funkcije \kod{host\_signal\_handler}, tačnije onog argumenta koji predstavlja instancu strukture \kod{siginfo\_t}. 
 
-U okviru zaglavlja \strano{signal.h}, nalazi se više funkcija koje se mogu koristiti za slanje signala. Jednostavniji od ponuđenih mehanizama, slanje signala bez dodatnih informacija funkcijom \kod{kill}, implementiran je u okviru interfejsa \strano{code\_coverage\_viewer} kao rešenje koje zadovoljava očekivane funkcionalne zahteve. Sa druge strane, u cilju mogućnosti emuliranja potpuno proizvoljnog programa, koji može komunicirati i naprednijim mehanizmom, slanjem signala sa dodatnim informacijama funkcijom \kod{sigqueue}, trenutna implementacija \strano{QEMU}-a sadrži ugrađenu podršku i za prosleđivanje poruke poslate sa signalom. Sadržaj poruke je predstavljen jedinstvenom celobrojnom vrednošću i/ili pokazivačem na strukturu u memoriji proizvoljnog tipa, a čuva se posebnom polju strukture tipa \kod{siginfo\_t}: uniji \kod{sigval}. Korisnički emulatori \strano{QEMU}-a u regularnom slučaju ne vrše čitanje i obradu nijedne informacije po prijemu signala, što pruža dovoljan prostor za nadogradnju \strano{signal-handler}-a u fazi između prijema i prosleđivanja. Pozitivna vrednost promenljive \kod{RUNTIME\_GCOV}, koja se prosleđuje prilikom prevođenja u slučaju instrumentalizacije novim pristupom, uslovljava čitanje vrednosti broja signala i prateće poruke i dodatnu akciju u slučaju predefinisane kombinacije za prikupljanje podataka iz izvršavanja: signal \strano{SIGUSR1} i tajna poruka: 45949. Specijalna celobrojna vrednost 45949 je dobijena iz poruke \kod{call drew\_coverage} kombinacijom \strano{md5} algoritma za heširanje i osnovnih aritmetičkih operacija. Kompletne izmene koda \strano{QEMU}-a u sklopu druge iteracije implementacije, prikazane su, u git formatu, \ref{fig:qemu-diff-3}.
+U okviru zaglavlja \strano{signal.h}, nalazi se više funkcija koje se mogu koristiti za slanje signala. Jednostavniji od ponuđenih mehanizama, slanje signala bez dodatnih informacija funkcijom \kod{kill}, implementiran je u okviru interfejsa \strano{code\_coverage\_viewer} kao rešenje koje zadovoljava očekivane funkcionalne zahteve. Sa druge strane, u cilju mogućnosti emuliranja potpuno proizvoljnog programa, koji može komunicirati i naprednijim mehanizmom, slanjem signala sa dodatnim informacijama funkcijom \kod{sigqueue}, trenutna implementacija \strano{QEMU}-a sadrži ugrađenu podršku i za prosleđivanje poruke poslate sa signalom. Sadržaj poruke je predstavljen jedinstvenom celobrojnom vrednošću i/ili pokazivačem na strukturu u memoriji proizvoljnog tipa, a čuva se posebnom polju strukture tipa \kod{siginfo\_t}: uniji \kod{sigval}. Korisnički emulatori \strano{QEMU}-a u regularnom slučaju ne vrše čitanje i obradu nijedne informacije po prijemu signala, što pruža dovoljan prostor za nadogradnju \strano{signal-handler}-a u fazi između prijema i prosleđivanja. Pozitivna vrednost promenljive \kod{RUNTIME\_GCOV}, koja se prosleđuje prilikom prevođenja u slučaju instrumentalizacije novim pristupom, uslovljava čitanje vrednosti broja signala i prateće poruke i dodatnu akciju u slučaju predefinisane kombinacije za prikupljanje podataka iz izvršavanja: signal \strano{SIGUSR1} i tajna poruka: 45949. Specijalna celobrojna vrednost 45949 je dobijena iz poruke \kod{call drew\_coverage} kombinacijom \strano{md5} algoritma za heširanje i osnovnih aritmetičkih operacija. Kompletne izmene koda \strano{QEMU}-a u sklopu druge iteracije implementacije, prikazane su, u git formatu, na listingu \ref{qemu-diff-3}.
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/signal.png}
-  \caption{Izmene fajla \strano{linux-user/signal.c}}
-  \label{fig:qemu-diff-3}
-\end{figure}
+\newpage
+
+\begin{lstlisting}[caption={Izmene fajla \strano{linux-user/signal.c}} ,frame=single, label=qemu-diff-3]
+diff --git a/linux-user/signal.c b/linux-user/signal.c
+
+@@ -642,6 +642,10 @@ static inline void rewind_if_in_safe_syscall(void *puc)
+ #endif
++#ifdef RUNTIME_GCOV
++extern void coverage_handler(int signo);
++#endif
++
+ static void host_signal_handler(int host_signum, siginfo_t *info,
+                                 void *puc)
+
+@@ -666,6 +670,24 @@ static void host_signal_handler(int host_signum, siginfo_t *info,
+         return;
++
++     
++     int message_int = info->si_value.sival_int;
++     printf("Recieved signal: %d with message: %d\n",host_signum, message_int);
++     //Checking if signal and message corespond to predefind coverage dumping comunication
++     if (host_signum == SIGUSR1 && message_int == 45949){
++#ifdef RUNTIME_GCOV
++       // informing about begining of coverage dump procedure and invoking coverage handler that will do the dumping
++	printf("Program %s is about to dump coverage data\n", program_invocation_short_name);
++	coverage_handler(host_signum);
++       //Informing about end of coverage dump procedure
++	printf("Program %s has finished dumping coverage data\n", program_invocation_short_name);
++	// reseting value of message since it is alredy being processed.
++	info->si_value.sival_int = 0;
++	return;
++#endif
++    }
++
+     trace_user_host_signal(env, host_signum, sig);
+\end{lstlisting}
 
 Prednost u odnosu na inicijalni plan se ogleda u znatnoj redukciji ograničenja mogućnosti instrumentalizovane verzije emulatora. Gornje ograničenje broja različitih signala je značajno manje od maksimalne celobrojne vrednosti koja se može smestiti u promenljivu tipa \kod{int}. Pored toga, verovatnoća slučaja upotrebe emuliranja korisničkog programa koji koristi tačno ovu kombinaciju je znatno manja nego u slučaju bezuslovne upotrebe signala \strano{SIGUSR1}. Iznimno, podaci iz izvršavanja su ipak namenjeni i potrebni isključivo razvijaocima \strano{QEMU} projekta. Stoga i ako dođe do pojave ekstremnog slučaja upotrebe na koga utiče ovo minimalno ograničenje, razvojni tim poseduje dovoljno znanja i iskustva da promeni korišćeni signal i/ili poruku. 
 
-Izmenom okidača za ispis podataka iz izvršavanja u fajlove gcda, došlo je do nekompatibilnosti interfejsa \strano{code\_coverage\_viewer} i instrumentalizovane verzije \strano{QEMU} emulatora. 
+\begin{lstlisting}[caption={Kod u okviru fajla \strano{messanger.c}} ,frame=single, label=qemu-diff-4]
+#include <stdio.h>                                                       
+#include <signal.h>                                                      
+#include <unistd.h>     
+#include <stdlib.h>
+static int pid;
+void message_handler(int signo){
+    if (signo==SIGUSR1){
+	printf("Sending signal to pid %d to dump data\n", pid);   
+	union sigval coverage_code;
+        coverage_code.sival_int = 45949;
+        sigqueue(pid, SIGUSR1, coverage_code);
+    }
+}
+int main(int argc, char**argv){
+	if(argc == 2) {
+		pid = atoi(argv[1]);
+		printf("Registrating signal SIGUSR1 for passing message 45949 to pid: %d...\n",pid);
+		signal(SIGUSR1,message_handler);
+		while(1){}
+	}
+	else{
+		printf("Incorrect number of command line arguments. Passing %d instead of 1.\n", argc-1);
+		printf("Please pass a single number as argument that presents the PID of target process.\n");
+	}
+	return 0;
+}
+\end{lstlisting}
+
+
+Izmenom okidača za ispis podataka iz izvršavanja u fajlove gcda, došlo je do nekompatibilnosti interfejsa \strano{code\_coverage\_viewer} i programa instrumentalizovane verzije \strano{QEMU} skupa emulatora. 
 
 Prevazilaženje ove prepreke ostvareno je kreiranjem posredničkog programa, sa ulaznim interfejsom kompatibilnim mehanizmu strano{code\_coverage\_viewer}-a, odnosno prijemu signala bez poruke, i izlaznim interfejsom kompatibilnim \strano{QEMU}-u, odnosno slanju signala sa porukom. Program nosi naziv: \strano{messanger}, što simbolizuje njegovu ulogu glasnika između novog grafičkog interfejsa i \strano{QEMU}-a. 
 
-Program messanger se pokreće sa jednim argumentom komandne linije koji predstavlja identifikator instrumentalizovanog pokrenutog \strano{QEMU} emulatora kome treba preneti poruku. Nakon registracije \strano{signal-handler}-a za \strano{SIGUSR1}, \strano{messanger} prelazi u stanje čekanja. Po prijemu odgovarajućeg signala, emituje se signal sa porukom 45494, koji uslovljava poziv funkcije \kod{drew\_coverage} u emulatoru sa identifikatorom iz argumenta komandne linije. Kod posredničkog programa, pisan u programskom jeziku C, prikazan je na slici \ref{fig:qemu-diff-4}.
-
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/messanger.png}
-  \caption{Izmene fajla \strano{messanger.c}}
-  \label{fig:qemu-diff-4}
-\end{figure} 
+Program messanger se pokreće sa jednim argumentom komandne linije koji predstavlja identifikator instrumentalizovanog pokrenutog \strano{QEMU} emulatora kome treba preneti poruku. Nakon registracije \strano{signal-handler}-a za \strano{SIGUSR1}, \strano{messanger} prelazi u stanje čekanja. Po prijemu odgovarajućeg signala, emituje se signal sa porukom 45494, koji uslovljava poziv funkcije \kod{drew\_coverage} u emulatoru sa identifikatorom iz argumenta komandne linije. Kod posredničkog programa, pisan u programskom jeziku C, prikazan je na listingu \ref{qemu-diff-4}.
 
 Nakon uspešnog okončavanja druge iteracije implementacije podrške za prikupljanje i prikaz podataka u toku izvršavanja u okviru projekta \strano{QEMU}, stvorili su se optimalni uslovi za finalno testiranje. 
 
@@ -1010,7 +1181,8 @@ Plan za testiranje je definisan sledećim koracima:
 \item analiza memorijske zahtevnosti:
 \begin{enumerate}
 \item prostor potreban za skladištenje celokupnog izgrađenog projekta \strano{QEMU}, kao i veličina svakog pojedinačnog emulatora, mora zadovoljavati sledeće nejednakosti: \\
-\kod{ size(<qemu\_vers1>) < size(<qemu\_vers3>) < size(<qemu\_vers2>) \\ \&\& \\ size(<qemu\_vers1>/<adresa\_programa>) < size(<qemu\_vers3>/<adresa\_programa>) < size(<qemu\_vers2>/<adresa\_programa>) }
+\kod{size(<qemu\_vers1>) < size(<qemu\_vers3>) < size(<qemu\_vers2>)} \\
+za svaki pojedinačni emulator QEMU projekta
 \end{enumerate}
 
 \item pokretanje programa:
@@ -1031,7 +1203,7 @@ Plan za testiranje je definisan sledećim koracima:
 \item Sprovođenje završnog dela, za sve tri verzije i oba emulatora unapred utvrđenog, slučaja upotrebe:
 \begin{enumerate}
 \item programi: \strano{<qemu\_vers1>/qemu/<arch>-linux-user/qemu-<arch>} se prekidaju odabirom opcije: n
-\item programi: \strano{<qemu\_vers2>/qemu/<arch>-linux-user/qemu-<arch>} se prekidaju odabirom opcije: n i generišu se izveštaji za svaki fajl izvornog koda ponaosob, standardnim alatom \strano{gcov}:
+\item programi: \strano{<qemu\_vers2>/qemu/<arch>-linux-user/qemu-<arch>} se prekidaju odabirom opcije: n i generišu se izveštaji za svaki fajl izvornog koda ponaosob, standardnim alatom \strano{gcov}: \\
 \kod{gcov <ime\_fajla> –f  > <ime\_fajla>.fun}
 \item programi: \strano{<qemu\_vers3>/qemu/<arch>-linux-user/qemu-<arch>} se ne prekidaju u cilju demonstracije prikupljanja i prikaza podataka u toku izvršavanja; sprovode se sledeći koraci:
 \begin{enumerate}
@@ -1074,17 +1246,26 @@ Pre početka testiranja, neophodno je kreirati radno okruženje, sledećim nared
 \begin{enumerate}
 \item kreiranje radnog direktorijuma: \kod{mkdir qemu\_test\_workspace}
 \item kreiranje tri bazna direktorijuma za različite verzije programa: \\
-\kod{mkdir qemu\_test\_workspace/qemu\_version\_01} \\ \kod{mkdir qemu\_test\_workspace/qemu\_version\_02} \\ \kod{mkdir qemu\_test\_workspace/qemu\_version\_03} \\
+\kod{mkdir qemu\_test\_workspace/qemu\_version\_01} \\ \kod{mkdir qemu\_test\_workspace/qemu\_version\_02} \\ \kod{mkdir qemu\_test\_workspace/qemu\_version\_03} 
 \item instalacija potrebnih biblioteka i alata za rad \strano{QEMU}-a i prevođenje progama za \strano{ARM}/\strano{MIPS} arhitekture: \\
-\kod{ sudo apt-get install build-essential zlib1g-dev pkg-config libglib2.0-dev binutils-dev libboost-all-dev autoconf libtool libssl-dev libpixman-1-dev libpython-dev python-pip libc6-armel-cross libc6-dev-armel-cross binutils-arm-linux-gnueabi libncurses5-dev gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf} i \strano{MTI GNU/Linux Toolchain MIPS32R2-MIPS32R5, MIPS64R2-MIPS64R5 and microMIPS za linux x64} preuzeti sa zvaničnog sajta: \strano{codescape.mips.com}
+\kod{ sudo apt-get install build-essential zlib1g-dev pkg-config \textbackslash } \\
+\hspace*{6mm} \kod{libglib2.0-dev binutils-dev libboost-all-dev autoconf \textbackslash } \\
+\hspace*{6mm} \kod{libtool libssl-dev libpixman-1-dev libpython-dev python-pip \textbackslash } \\
+\hspace*{6mm} \kod{libc6-armel-cross libc6-dev-armel-cross libncurses5-dev \textbackslash } \\
+\hspace*{6mm} \kod{binutils-arm-linux-gnueabi gcc-arm-linux-gnueabihf \textbackslash } \\
+\hspace*{6mm} \kod{g++-arm-linux-gnueabihf} \\
+i \strano{MTI GNU/Linux Toolchain MIPS32R2-MIPS32R5, MIPS64R2-MIPS64R5 and microMIPS za linux x64} preuzeti sa zvaničnog sajta: \strano{codescape.mips.com}
 \item obezbeđivanje koda \strano{QEMU}-a sa git repozitorijuma: \\
 \kod{cd qemu\_test\_workspace/qemu\_version\_<1/2/3>} \\
 \kod{ git clone https://github.com/qemu/qemu.git}
 \item unos izmena neophodnih za prikupljanje i prikaz podataka u toku izvršavanja, ručno ili koristeći \\
 \kod{git apply}
+
 \item kreiranje direktorijuma sa bibliotekom \strano{libcoverage}, registratorom signala i interfejsom za prikaz podataka o pokrivenosti koda: \\
-\kod{ cp -r SRC/code\_coverage\_lib/ qemu\_test\_workspace/qemu\_version\_03/qemu/} \\
-\kod{cp -r SRC/code\_coverage\_viewer/ qemu\_test\_workspace/qemu\_version\_03/qemu/} \\
+\kod{ cp -r SRC/code\_coverage\_lib/ \textbackslash } \\
+\hspace*{6mm} \kod{qemu\_test\_workspace/qemu\_version\_03/qemu/} \\
+\kod{cp -r SRC/code\_coverage\_viewer/ \textbackslash } \\
+\hspace*{6mm} \kod{qemu\_test\_workspace/qemu\_version\_03/qemu/} \\
 \kod{cd qemu\_test\_workspace/qemu\_version\_03/qemu/code\_coverage\_lib} \\
 \kod{make all}
 \item kreiranje direktorijuma sa programom koji će se emulirati: \\
@@ -1104,7 +1285,7 @@ Pre početka testiranja, neophodno je kreirati radno okruženje, sledećim nared
 \kod{ gcc messanger.c -o messanger}
 \end{enumerate}
 
-Prvi korak testiranja obuhvata konfigurisanje i prevođenje tri verzije \strano{QEMU} skupa emulatora. Za  potvrdu uspešnosti instrumentalicije, može se vršiti provera prisustva fajlova sa ekstenzijom \strano{gcno} komandom \kod{find},  prisustvo funkcija  \kod{\_\_gcov\_init}, \kod{gcov\_exit} i \kod{drew\_coverage} komandom \kod{readlelf}. Očekivani rezultati podrazumevaju:
+Prvi korak testiranja obuhvata konfigurisanje i prevođenje tri verzije \strano{QEMU} skupa emulatora. Za  potvrdu uspešnosti instrumentalicije, može se vršiti provera prisustva fajlova sa ekstenzijom \strano{gcno} komandom \kod{find}, kao i prisustvo funkcija  \kod{\_\_gcov\_init}, \kod{gcov\_exit} i \kod{drew\_coverage} komandom \kod{readelf}. Očekivani rezultati podrazumevaju:
 \begin{enumerate}
 \item prisustvo fajlova sa ekstenzijom \strano{gcno} u direktorijumima: \\ \strano{qemu\_test\_workspace/qemu\_version\_02} \\ i \strano{qemu\_test\_workspace/qemu\_version\_03}, odnosno: \\ njihovo odsusvo u \strano{qemu\_test\_workspace/qemu\_version\_01}
 \item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{drew\_coverage} i odustvo funkcije \kod{gcov\_exit} u programima verzije \strano{qemu\_test\_workspace/qemu\_version\_03}
@@ -1116,7 +1297,7 @@ Dobijeni rezultati su u skladu sa očekivanim, što se jasno može videti na sli
 \begin{figure}[!ht]
   \centering
   \label{fig:qemu-test-1}
-  \includegraphics[width=\textwidth]{img/qemu-test-1.png}
+  \includegraphics[width=\textwidth]{img/qemu-test-1-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 1}
 \end{figure} 
 
@@ -1166,17 +1347,17 @@ qemu-img & 100.0000 & 143.0496 & 142.8346 \\
 
 \end{table}
 
-Treći korak testiranja obuhvata pokretanje svih šest programa u šest različitih terminala, sa ciljem lakšeg i boljeg poređenja.  Za pokretanje \strano{QEMU} emulatora u koje je linkovana dinamička biblioteka \strano{libcoverage}, preduslov je predstavljalo modifikovanje okruženja. Na vrednost promenljive \strano{LD\_LIBRARY\_PATH} se nadovezuje dodatno putanja do biblioteke \strano{libcoverage}. Prikaz drugog koraka je dat na slici \ref{fig:qemu-test-34}.
+Treći korak testiranja obuhvata pokretanje svih šest programa u šest različitih terminala, sa ciljem lakšeg i boljeg poređenja.  Za pokretanje \strano{QEMU} emulatora u koje je linkovana dinamička biblioteka \strano{libcoverage}, preduslov je predstavljalo modifikovanje okruženja. Na vrednost promenljive \strano{LD\_LIBRARY\_PATH} se nadovezuje dodatno putanja do biblioteke \strano{libcoverage}. Prikaz trećeg koraka, za program \strano{qemu-mips} je dat na slici \ref{fig:qemu-test-34}.
 
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/qemu-test-23.png}
+  \includegraphics[width=0.9\textwidth]{img/qemu-test-23-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Koraci 3 i 4}
   \label{fig:qemu-test-34}
 \end{figure} 
 
-Za spovođenje četvrtog koraka testiranja, koristiće se redukovani slučaj upotrebe programa \strano{lucky} iz prethodne sekcije, sa samo jednim odabirom opcije: y. Na osnovu rezultata ovog koraka, koji su prikazani na slici na \ref{fig:qemu-test-34}, može se zaključiti da instrumentalizacija i prikupljanje podataka ne remete regularan rad emulatora. Time je potvrđena ispravnost korišćenja biblioteke \strano{libcverage} u realnim primenama. 
+Za spovođenje četvrtog koraka testiranja, koristiće se redukovani slučaj upotrebe programa \strano{lucky} iz prethodne sekcije, sa samo jednim odabirom opcije: y. Na osnovu rezultata ovog koraka, koji su u slučaju programa \strano{qemu-mips} prikazani na slici na \ref{fig:qemu-test-34}, može se zaključiti da instrumentalizacija i prikupljanje podataka ne remete regularan rad emulatora. Time je potvrđena ispravnost korišćenja biblioteke \strano{libcverage} u realnim primenama. 
 
 Procedura narednog koraka se razlikuje u zavisnosti od verzije. Izvršavanje neinstrumentalizovanih programa, više nije neophodno, te se prekidaju odabirom opcije: n. Programi čije podatke iz izvršavanja prikuplja standardna biblioteka \strano{libgcov} se takođe prekidaju na isti način. Statička biblioteka \strano{libgcov} će automatski obaviti funkconalnost kreiranja fajlova \strano{gcda} kao poslednju instrukciju. Pozivom alata \strano{gcov}, za svaki fajl izvornog koda, generišu se dva tipa izveštaja, čije se prisustvo i nepraznost uzimaju za potvrdu uspešnosti ovog koraka testiranja. Validacija je deo procedure narednog koraka. 
 
@@ -1184,7 +1365,7 @@ Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve ins
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/qemu-test-5.png}
+  \includegraphics[width=\textwidth]{img/qemu-test-5-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 5c}
   \label{fig:qemu-test-5}
 \end{figure} 
@@ -1195,38 +1376,92 @@ Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve ins
 Na slici \ref{fig:qemu-test-6a}. je dat prikaz ispisa svih šest programa nakon sprovedenog celokupnog slučaja upotrebe. Očekivano poklapanje ispisa koji vodi poreklo iz inicijalnog dela je potvrđeno, stoga je prvi kriterijum validacije ispisa zadovoljen. Pristustvo oproštajne poruke \strano{Goodbye} u ispisima terminiranih programa, kao i poruke o prikupljanju podataka
 potvrđuju ispunjenost preostalih kriterijuma validacije ispisa.
 
+Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. 
+
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/qemu-test-6a.png}
+  \includegraphics[width=\textwidth]{img/qemu-test-6a-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6a}
   \label{fig:qemu-test-6a}
 \end{figure} 
 
-Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. Na slici \ref{fig:qemu-test-6b-1} su prikazani delovi izveštaja: \\ \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/arm-linux-user/linux-user/signal.c.gcov} \\ i \\ \strano{qemu\_test\_workspace/qemu\_version\_02/qemu/mips-linux-user/linux-user/signal.c.gcov}
-koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \\ \kod{host\_signal\_handler}.
-Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. Na slici \ref{fig:qemu-test-6b-2} su prikazani delovi izveštaja: \\
-\strano{qemu\_test\_workspace/qemu\_version\_03/qemu/arm-linux-user/linux-user/signal.c.gcov} \\ i \\ \strano{qemu\_test\_workspace/qemu\_version\_03/qemu/mips-linux-user/linux-user/signal.c.gcov}\\
-koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \\ \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve linije koda koje se izvršavaju nakon poziva funkcije: \\ \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
+\begin{lstlisting}[caption={Testiranje nad projektom \strano{QEMU} - Korak 6b bez izmena} ,frame=single, label=qemu-test-6b-1]
+    #####:  645:static void host_signal_handler(int host_signum,
+        -:  646:                        siginfo_t *info, void *puc)
+        -:  647:{
+    #####:  648:    CPUArchState *env = thread_cpu->env_ptr;
+    #####:  649:    CPUState *cpu = ENV_GET_CPU(env);
+    #####:  650:    TaskState *ts = cpu->opaque;
+        -:  651:
+        -:  652:    int sig;
+        -:  653:    target_siginfo_t tinfo;
+    #####:  654:    ucontext_t *uc = puc;
+        -:  655:    struct emulated_sigtable *k;
+        -:  656:
+        -:  657:    /* the CPU emulator uses some host signals to detect exceptions,
+        -:  658:       we forward to it some signals */
+    #####:  659:    if ((host_signum == SIGSEGV || host_signum == SIGBUS)
+    #####:  660:        && info->si_code > 0) {
+    #####:  661:        if (cpu_signal_handler(host_signum, info, puc))
+    #####:  662:            return;
+        -:  663:    }
+        -:  664:
+        -:  665:    /* get target signal number */
+    #####:  666:    sig = host_to_target_signal(host_signum);
+\end{lstlisting}
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/qemu-test-6b-1.png}
-  \caption{Testiranje nad projektom \strano{QEMU} - Korak 6b bez izmena}
-  \label{fig:qemu-test-6b-1}
-\end{figure} 
+Na listingu \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}.
+Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width=\textwidth]{img/qemu-test-6b-2.png}
-  \caption{Testiranje nad projektom \strano{QEMU} - Korak 6b sa izmenama}
-  \label{fig:qemu-test-6b-2}
-\end{figure} 
+\begin{lstlisting}[caption={Testiranje nad projektom \strano{QEMU} - Korak 6b sa izmenama} ,frame=single, label=qemu-test-6b-2]
+        1:  649:static void host_signal_handler(int host_signum,
+        -:  650:                        siginfo_t *info, void *puc)
+        -:  651:{
+        1:  652:    CPUArchState *env = thread_cpu->env_ptr;
+        1:  653:    CPUState *cpu = ENV_GET_CPU(env);
+        1:  654:    TaskState *ts = cpu->opaque;
+        -:  655:
+        -:  656:    int sig;
+        -:  657:    target_siginfo_t tinfo;
+        1:  658:    ucontext_t *uc = puc;
+        -:  659:    struct emulated_sigtable *k;
+        -:  660:
+        -:  661:    /* the CPU emulator uses some host signals to detect exceptions,
+        -:  662:       we forward to it some signals */
+        1:  663:    if ((host_signum == SIGSEGV || host_signum == SIGBUS)
+    #####:  664:        && info->si_code > 0) {
+    #####:  665:        if (cpu_signal_handler(host_signum, info, puc))
+    #####:  666:            return;
+        -:  667:    }
+        -:  668:
+        -:  669:    /* get target signal number */
+        1:  670:    sig = host_to_target_signal(host_signum);
+        1:  671:    if (sig < 1 || sig > TARGET_NSIG)
+    #####:  672:        return;
+        -:  673:
+        -:  674:
+        1:  675:     int message_int = info->si_value.sival_int;
+        1:  676:     printf("Recieved signal: %d with message: %d\n",host_signum, message_int);
+        -:  677:     //Checking if signal and message corespond to predefind coverage dumping comunication
+        1:  678:     if (host_signum == SIGUSR1 && message_int == 45949){
+        -:  679:#ifdef RUNTIME_GCOV
+        -:  680:       // informing about begining of coverage dump procedure and invoking coverage handler that will do the dumping
+        1:  681:        printf("Program %s is about to dump coverage data\n", program_invocation_short_name);
+        1:  682:        coverage_handler(host_signum);
+        -:  683:       //Informing about end of coverage dump procedure
+    #####:  684:        printf("Program %s has finished dumping coverage data\n", program_invocation_short_name);
+        -:  685:        // reseting value of message since it is alredy being processed.
+    #####:  686:        info->si_value.sival_int = 0;
+\end{lstlisting}
+
+Na listingu \ref{qemu-test-6b-2} su prikazani delovi izveštaja:
+\strano{signal.c.gcov} koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve linije koda koje se izvršavaju nakon poziva funkcije: \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
 
 Generisanje ukupne pokrivenosti projekta će biti sprovedeno na isti način kao i u okviru testiranja nad programom \strano{lucky} u prethodnoj sekciji.Jednostavnim prebrajanjem linija koje su u izveštajima označene kao izvršene/izvršne, i računanjem količnika ta dva broja, dobijaju jednake vrednosti kao one koje su generisane novim interfejsom i prikazane na slici \ref{fig:qemu-test-6c}
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=0.4\textwidth]{img/qemu-test-6c.png}
+  \includegraphics[width=\textwidth]{img/qemu-test-6c-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6c}
   \label{fig:qemu-test-6c}
 \end{figure} 
