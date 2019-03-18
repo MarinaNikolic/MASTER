@@ -481,11 +481,11 @@ Implementacija unapređenja prikupljanja i prikaza podataka iz izvršavanja prog
 \item Implementacija dinamičke biblioteke, nezavisne od \strano{gcc}-a, čija osnovna funkcionalnost predstavlja prikupljanje podataka iz izvršavanja programa pre završetka njegovog rada.
 \item Implementacija novog grafičkog interfejsa za prikaz podataka, u kome je bezbedna i višegodišnjim korisničkim iskustvom potvrđena osnova, alat \strano{gcov}, nadograđena jednostavnim, preglednim, korisnički prilagođenom interfejsom sa povišenom informativnošću.
 \end{enumerate}
-U narednom tekstu biće detaljno opisane implementacije obe celine, a celokupan k\^{o}d potreban za njihovu izgradju je dostupan u okviru \strano{git} repozitorijuma na adresi:\\
+U narednom tekstu biće detaljno opisane implementacije obe celine, a celokupan k\^{o}d potreban za njihovu izgradnju je dostupan u okviru \strano{git} repozitorijuma na adresi:\\
 \strano{https://github.com/MarinaNikolic/MASTER/tree/master/SRC}
 
 
-\section{Implementacija biblioteke}
+\section{Biblioteka libcoverage}
 
 Implementacija biblioteke \strano{libcoverage} je izvršena u programskom jeziku C. Uzor je predstavljala postojeća bibloteka \strano{libgcov}, podrazumevana biblioteka za prikupljanje podataka iz izvršavanja programa u okviru programskog prevodioca \strano{gcc}. Implementacija je izvšena u četiri faze:
 \begin{enumerate}
@@ -520,7 +520,7 @@ extern void drew_coverage();
 void coverage_handler(int signo){
     if (signo==COVERAGE_SIGNAL){
          printf("Dumping coverage data... \n");
-	 drew_coverage();
+    drew_coverage();
     }
 }
 
@@ -531,7 +531,7 @@ void coverage_signal_registry(){
 }
 \end{lstlisting}
 
-Pored osnovnih izmena, izvršene su i dve manje modifikacije funkcije za prikupljanje podataka i kreiranje fajlova gcda. Konstanta \kod{GCOV\_LOCKED}, definisana pretprocesorskom direktivom, a korišćena u cilju sprečavanja paralelizacije rada funkcije \strano{gcov\_exit} iz biblioteke \strano{libgcov} i alata \strano{gcov}, izbačena je iz upotrebe. U novom pristupu, paralelizacija procesa prikupljanja i obrade podataka je, iako bezbednosni izazov, poželjna osobina. Međutim, celokupni k\^{o}d koji koristi globalnu promenljivu \kod{gcov\_dump\_complete}, zadužen za sprečavanje višestrukog izbacivanja podataka o izvršavanju programa, kao i sama promenljiva nisu eliminisani. Bez alternativnog mehanizma odbrane, eliminacija ove funkcionalnosti bi dovela do netačnih vrednosti u izveštaju, odnosno vrednosti multipliciranih brojem poziva funkcije za ispis. Prebacivanje odgovornosti premeštanja starih fajlova \strano{gcda} pre novog poziva funkcije, nije prihvatljivo rešenje sa stanovišta bezbednosti i jednostavnosti upotrebe, dok bi automatsko naknadno prepakivanje fajlova \strano{gcda} narušilo kompatibilnost sa postojećim interfejsom trenutne implementacije. 
+Pored osnovnih izmena, izvršene su i dve manje modifikacije funkcije za prikupljanje podataka i kreiranje fajlova \strano{gcda}. Konstanta \kod{GCOV\_LOCKED}, definisana pretprocesorskom direktivom, a korišćena u cilju sprečavanja paralelizacije rada funkcije \strano{gcov\_exit} iz biblioteke \strano{libgcov} i alata \strano{gcov}, izbačena je iz upotrebe. U novom pristupu, paralelizacija procesa prikupljanja i obrade podataka je, iako bezbednosni izazov, poželjna osobina. Međutim, celokupni k\^{o}d koji koristi globalnu promenljivu \kod{gcov\_dump\_complete}, zadužen za sprečavanje višestrukog izbacivanja podataka o izvršavanju programa, kao i sama promenljiva nisu eliminisani. Bez alternativnog mehanizma odbrane, eliminacija ove funkcionalnosti bi dovela do netačnih vrednosti u izveštaju, odnosno vrednosti multipliciranih brojem poziva funkcije za ispis. Prebacivanje odgovornosti premeštanja starih fajlova \strano{gcda} pre novog poziva funkcije, nije prihvatljivo rešenje sa stanovišta bezbednosti i jednostavnosti upotrebe, dok bi automatsko naknadno prepakivanje fajlova \strano{gcda} narušilo kompatibilnost sa postojećim interfejsom trenutne implementacije. 
 
 Cilj treće faze implementacije predstavlja uklanjanje zavisnosti biblioteke od programskog prevodioca \strano{gcc}. Prvi korak ka tom cilju, obavljen je još u toku prve faze, dodavanjem određenih funkcija i konstanti iz koda prevodioca, neophodnih za definisanje simbola, koji su u fazi linkovanja označeni kao nerazrešeni. U cilju logičkog osamostaljivanja i sprečavanja višestruke definisanosti simbola, funkcije koje programski prevodilac \strano{gcc} koristi i van procesa instrumentalizacije, su zamenjene sličnim, funkcionalno kompatibilnim, varijantama. Primer je funkcija: \kod{gcc\_assert}, koja je zamenjena varijantom preuzetom iz verzije 5.0, pod nazivom: \kod{gcov\_nonruntime\_assert}. Ukinuta je zavisnost od definisanosti promenljive \kod{IN\_LIBGCOV}, koja uslovljava prikupljanje podataka postojećom bibliotekom \strano{libgcov}, na kraju izvršavanja programa. 
 
@@ -554,7 +554,7 @@ Globane vrednosti unutar same biblioteke koje su zavisne od verzije prevodioca, 
 #endif
 \end{lstlisting}
 
-Poslednja faza implementacije obuhvata izmene vršene u cilju vremenske i prostorne optimizacije. U starijim verzijama prevodioca \strano{gcc}, računanje glavne kontrolne sume programa se obavljalo na početku izvršavanja, u okviru funkcije \kod{\_\_gcov\_init}. Korišćen je mehanizam pod nazivom: ciklična provera pariteta bloka, nad statičkim podacima programa (imena instrumentalizovanih fajlova izvornog koda). Od verzije 4.7.0., uveden je novi algoritam, po kome se ova kontrolna suma računa u toku čitanja podataka iz instrumentalizacionih struktura, u okviru funkcije \kod{gcov\_exit}. Mehanizam ciklične provere pariteta bloka je zadržan, ali je skup podataka potpuno izmenjen. Umesto imena fajlova, koriste se drugi statički podaci, kao što je broj funkcija, a uključeni su i dinamicki podaci, odnosno vrednosti brojača. Eventualna oštecenja podataka će sa dovoljno velikom verovatnoćom biti detektovana u kontrolnim sumama pojedinačnih entiteta, pre svega funkcija, pa dinamičko računanje kontrolne sume programa troši više vremena nego što doprinosi. Stoga su, u novoj biblioteci, kontrolne sume implementirane po uzoru na verziju 4.6.0. 
+Poslednja faza implementacije obuhvata izmene vršene u cilju vremenske i prostorne optimizacije. U starijim verzijama prevodioca \strano{gcc}, računanje glavne kontrolne sume programa se obavljalo na početku izvršavanja, u okviru funkcije \kod{\_\_gcov\_init}. Korišćen je mehanizam pod nazivom: ciklična provera pariteta bloka, nad statičkim podacima programa (imena instrumentalizovanih fajlova izvornog koda). Od verzije 4.7.0, uveden je novi algoritam, po kome se ova kontrolna suma računa u toku čitanja podataka iz instrumentalizacionih struktura, u okviru funkcije \kod{gcov\_exit}. Mehanizam ciklične provere pariteta bloka je zadržan, ali je skup podataka potpuno izmenjen. Umesto imena fajlova, koriste se drugi statički podaci, kao što je broj funkcija, a uključeni su i dinamički podaci, odnosno vrednosti brojača. Eventualna oštećenja podataka će sa dovoljno velikom verovatnoćom biti detektovana u kontrolnim sumama pojedinačnih entiteta, pre svega funkcija, pa dinamičko računanje kontrolne sume programa troši više vremena nego što doprinosi. Stoga su, u novoj biblioteci, kontrolne sume implementirane po uzoru na verziju 4.6.0. 
 
 Dodatna optimizacija postignuta je redukovanjem broja sistemskih poziva za ispisivanje sadržaja u fajl \strano{gcda}. Umesto velikog broja manjih poziva sistemskog poziva \strano{write} za svaku 32-obitnu vrednost oznake ili brojača, vrši se jedinstveni poziv za celokupan sadržaj jednog fajla \strano{gcda}. Kako se bafer za privremeno čuvanje ne reciklira, već samo proširuje, ovim se nije povećala prostorna složenost. Dodatni memorijski prostor je potreban samo za skladištenje jedne dodatne globalne promenljive koja sadrži broj trenutno neispisanih vrednosti. Sa druge strane, procesoru je prepuštena odluka o veličini pojedinačnog bloka koji će se upisati, što je na sistemu optimalna vrednost. 
 
@@ -570,7 +570,7 @@ pristup:    ci_ptr->values;
 pristup:    gi_ptr->functions[f_ix]->ci_ptr->values
 \end{lstlisting}
 
-\section{Implementacija grafičkog interfejsa}
+\section{Korisnički interfejs}
 
 Implementacija novog grafičkog interfejsa za prikaz podataka iz izvršavanja programa, pod nazivom: \strano{code\_coverage\_viewer}, izvršena je u programskom jeziku \strano{Python}, korišćenjem posebnog modula za grafičku podršku: \strano{wxPython}. Osnovna uloga novog interfejsaa jeste da predstavlja jednostavni, korisniku prilagođen omotač za celokupan proces prikupljanja i prikaza podataka u toku izvršavanja programa. 
 
@@ -591,7 +591,7 @@ Na samom vrhu se nalazi dugme za odabir radnog direktorijuma: \strano{Choose wor
 Sledeće tri komponente u koloni čine tekstualno polje za unos imena procesa, labela za pružanje informacije šta u to polje treba uneti i dugme za kreiranje fajlova \strano{gcda}. Tekstualno polje je instanca klase za prikaz dinamičkog teksta, pod nazvom: \kod{wx.TextCtrl}, i služi za unos imena procesa kome treba poslati signal da prikupi podatke o svom dotadašnjem izvršavanju i upiše ih u fajlove sa ekstenzijom \strano{gcda}. Ukoliko se na sistemu izvršava više programa sa tim imenom, signal će biti poslat svakom posebno. Sama funkcionalnost korišćenja komande \strano{kill} za slanje signala \strano{SIGUSR1} u cilju prikupljanja podataka, odnosno pozivanja funkcije \kod{drew\_coverage} iz biblioteke \strano{libgcov}, se ne pokreće već nakon upisa imena, već je potreban klik na dugme za kreiranje fajlova \strano{gcda}, pod nazivom \strano{Dump coverage data}. Ovo dugme je takođe instanca klase \kod{wx.Button}, kao i prethodno, dok je za sve labele korišćena klasa za prikaz statičkog teksta, pod nazivom: \kod{wx.StaticText}. 
 
 
-Funkcionalnost ove tri komponente je dostupna samo korisnicima \strano{Unix} ili \strano{Unix}-olikih sistema, koji su pored instrumentalizacionih flegova i biblioteke \strano{libcoverage}, svoj program preveli i koristeći objektni fajl \strano{coverage\_registration.o}, i nisu predefinisali signal \strano{SIGUSR1}. Ograničenje je napomenuto u specifikaciji grafičkog korisničkog interfejsa, kao i u oviru \strano{Help}-a. 
+Funkcionalnost ove tri komponente je dostupna samo korisnicima \strano{Unix} ili \strano{Unix}-olikih sistema, koji su pored instrumentalizacionih flegova i biblioteke \strano{libcoverage}, svoj program preveli i koristeći objektni fajl \strano{coverage\_registration.o}, i nisu predefinisali signal \strano{SIGUSR1}. Ograničenje je napomenuto u specifikaciji grafičkog korisničkog interfejsa, kao i u okviru \strano{Help}-a. 
 
 Izvršavanje sistemske komanade \kod{kill -10 <pid>}, kao i svih ostalih sistemskih komandi je implementirano pomoću funkcije \kod{system}, modula \kod{os}. Ovo je najjednostavniji princip, bez bezbednosnih izazova, koji u potpunosti zadovoljava potrebe novog grafičkog interfejsa. Naredne dve komponente predstavljaju interfejs ka funkcionalnosti generisanja izveštaja alatom \strano{gcov} i kontrole njihovih prikazivanja. Dugme: \strano{Generate gcov and function files} pokreće rekurzivnu pretragu radnog direktorijuma i poziv alata \strano{gcov} za sve pronađene fajlove \strano{gcda}. Odgovarajući fajl \strano{gcno} se nalazi na istoj lokaciji gde i \strano{gcda}, dok se putanja do fajla sa izvornim kodom dobija parsiranjem sadržaja fajla \strano{gcno}. Ovim postupkom se kreiraju dva tipa izveštaja: 
 \begin{enumerate}
