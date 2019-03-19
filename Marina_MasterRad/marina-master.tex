@@ -682,7 +682,8 @@ Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{c
 \subsubsection{Opis koda primera}
 
 Program \strano{lucky} računa srećan broj na osnovu datuma rođenja, rekurzivnim sabiranjem cifara do jednocifrenog broja. Sastoji se iz dva fajla izvornog koda, pisanih u programskom jeziku C: \strano{main.c} i \strano{lucky.c}.
-\\ 
+
+\newpage
 
 \begin{lstlisting}[caption={Izvorni kod: \strano{main.c}},frame=single, label=lucky1]
 #include <stdio.h>
@@ -844,7 +845,7 @@ Grafička reprezentacija plana testiranja je prikazana na slici \ref{fig:diag}
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky_diagram.png}
+  \includegraphics[width=\textwidth , height=0.9\textheight]{img/lucky_diagram.png}
   \caption{Plan testiranja instrumentalizacije programa \strano{lucky}}
   \label{fig:diag}
 \end{figure}
@@ -890,7 +891,7 @@ Drugi korak obuhvata pokretanje sva tri programa u tri različita terminala, kak
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=0.9\textwidth]{img/lucky2-ng.png}
+  \includegraphics[width=0.88\textwidth]{img/lucky2-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Koraci 2 i 3}
   \label{fig:lucky-test-2}
 \end{figure}
@@ -921,7 +922,7 @@ Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=0.9\textwidth]{img/lucky5-ng.png}
+  \includegraphics[width=0.85\textwidth]{img/lucky5-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5a}
   \label{fig:lucky-test-5}
 \end{figure}
@@ -991,9 +992,7 @@ Očekivana složenost ovog procesa u slučaju prosečnog, većeg projekta, je iz
 
 Po ugledu na opciju: \kod{--enable gcov}, u skriptu za konfigurisanje je uvedena nova opcija: \kod{--enable-runtime-gcov}, koja takođe uslovljava uključivanje flegova za instrumentalizaciju u toku prevođenja izvornog fajla do objektnog, ali u proces linkovanja umesto njih uslovljava prisustvo dinamičke biblioteke \strano{libcoverage} i objektnog fajla za registraciju signala. Ispisivanje odgovarajućih vrednosti u konfiguracioni fajl: \strano{config\_host.mak} urađen je identično kao u slučaju postojeće opcije \kod{--enable gcov}. 
 
-Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikpljanja podaka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure} u git formatu, prikazane su na listingu \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su na listingu \ref{qemu-diff-2}. 
-
-\newpage
+Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikpljanja podaka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure} u git formatu, prikazane su na listingu \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su na listingu \ref{qemu-diff-2}. \\
 
 \begin{lstlisting}[caption={Izmene skripte \strano{configure}},frame=single, label=qemu-diff-1]
 diff --git a/configure b/configure
@@ -1109,7 +1108,7 @@ diff --git a/linux-user/signal.c b/linux-user/signal.c
      trace_user_host_signal(env, host_signum, sig);
 \end{lstlisting}
 
-Prednost u odnosu na inicijalni plan se ogleda u znatnoj redukciji ograničenja mogućnosti instrumentalizovane verzije emulatora. Gornje ograničenje broja različitih signala je značajno manje od maksimalne celobrojne vrednosti koja se može smestiti u promenljivu tipa \kod{int}. Pored toga, verovatnoća slučaja upotrebe emuliranja korisničkog programa koji koristi tačno ovu kombinaciju je znatno manja nego u slučaju bezuslovne upotrebe signala \strano{SIGUSR1}. Iznimno, podaci iz izvršavanja su ipak namenjeni i potrebni isključivo razvijaocima \strano{QEMU} projekta. Stoga i ako dođe do pojave ekstremnog slučaja upotrebe na koga utiče ovo minimalno ograničenje, razvojni tim poseduje dovoljno znanja i iskustva da promeni korišćeni signal i/ili poruku. 
+Prednost u odnosu na inicijalni plan se ogleda u znatnoj redukciji ograničenja mogućnosti instrumentalizovane verzije emulatora. Gornje ograničenje broja različitih signala je značajno manje od maksimalne celobrojne vrednosti koja se može smestiti u promenljivu tipa \kod{int}. Pored toga, verovatnoća slučaja upotrebe emuliranja korisničkog programa koji koristi tačno ovu kombinaciju je znatno manja nego u slučaju bezuslovne upotrebe signala \strano{SIGUSR1}. Iznimno, podaci iz izvršavanja su ipak namenjeni i potrebni isključivo razvijaocima \strano{QEMU} projekta. Stoga i ako dođe do pojave ekstremnog slučaja upotrebe na koga utiče ovo minimalno ograničenje, razvojni tim poseduje dovoljno znanja i iskustva da promeni korišćeni signal i/ili poruku. \\
 
 \begin{lstlisting}[caption={Kod u okviru fajla \strano{messanger.c}} ,frame=single, label=qemu-diff-4]
 #include <stdio.h>                                                       
@@ -1294,11 +1293,10 @@ Dobijeni rezultati su u skladu sa očekivanim, što se jasno može videti na sli
 
 \begin{figure}[!ht]
   \centering
-  \label{fig:qemu-test-1}
   \includegraphics[width=\textwidth]{img/qemu-test-1-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 1}
+  \label{fig:qemu-test-1}
 \end{figure} 
-
 
 U okviru drugog koraka, sprovedena je ocena memorijske zahtevnosti. U tabeli \ref{tabela} prikazana je veličina celokupnog projekta, kao i nekoliko pojedinačnih programa unutar projekta, za sve tri verzije. Veličina je prikazana u bajtovima, kao i u obliku procenta regularne veličine. Može se primetiti da se korišćenjem dinamičke biblioteke ostvaruje ušteda od aproksimativno 1\% ukupne veličine.
 
@@ -1350,7 +1348,7 @@ Treći korak testiranja obuhvata pokretanje svih šest programa u šest različi
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=0.9\textwidth]{img/qemu-test-23-ng.png}
+  \includegraphics[width=\textwidth]{img/qemu-test-23-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Koraci 3 i 4}
   \label{fig:qemu-test-34}
 \end{figure} 
@@ -1363,7 +1361,7 @@ Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve ins
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/qemu-test-5-ng.png}
+  \includegraphics[width=0.97\textwidth]{img/qemu-test-5-ng.png}
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 5c}
   \label{fig:qemu-test-5}
 \end{figure} 
@@ -1374,7 +1372,7 @@ Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve ins
 Na slici \ref{fig:qemu-test-6a}. je dat prikaz ispisa svih šest programa nakon sprovedenog celokupnog slučaja upotrebe. Očekivano poklapanje ispisa koji vodi poreklo iz inicijalnog dela je potvrđeno, stoga je prvi kriterijum validacije ispisa zadovoljen. Pristustvo oproštajne poruke \strano{Goodbye} u ispisima terminiranih programa, kao i poruke o prikupljanju podataka
 potvrđuju ispunjenost preostalih kriterijuma validacije ispisa.
 
-Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. 
+Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. Na listingu \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
 
 \begin{figure}[!ht]
   \centering
@@ -1382,6 +1380,12 @@ Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: 
   \caption{Testiranje nad projektom \strano{QEMU} - Korak 6a}
   \label{fig:qemu-test-6a}
 \end{figure} 
+
+\newpage
+
+Na listingu \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}.
+Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
+\\
 
 \begin{lstlisting}[caption={Testiranje nad projektom \strano{QEMU} - Korak 6b bez izmena} ,frame=single, label=qemu-test-6b-1]
     #####:  645:static void host_signal_handler(int host_signum,
@@ -1408,8 +1412,10 @@ Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: 
     #####:  666:    sig = host_to_target_signal(host_signum);
 \end{lstlisting}
 
-Na listingu \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}.
-Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
+Na listingu \ref{qemu-test-6b-2} su prikazani delovi izveštaja:
+\strano{signal.c.gcov} koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve linije koda koje se izvršavaju nakon poziva funkcije: \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
+
+\newpage
 
 \begin{lstlisting}[caption={Testiranje nad projektom \strano{QEMU} - Korak 6b sa izmenama} ,frame=single, label=qemu-test-6b-2]
         1:  649:static void host_signal_handler(int host_signum,
@@ -1451,9 +1457,6 @@ Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \k
         -:  685:        // reseting value of message since it is alredy being processed.
     #####:  686:        info->si_value.sival_int = 0;
 \end{lstlisting}
-
-Na listingu \ref{qemu-test-6b-2} su prikazani delovi izveštaja:
-\strano{signal.c.gcov} koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve linije koda koje se izvršavaju nakon poziva funkcije: \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
 
 Generisanje ukupne pokrivenosti projekta će biti sprovedeno na isti način kao i u okviru testiranja nad programom \strano{lucky} u prethodnoj sekciji.Jednostavnim prebrajanjem linija koje su u izveštajima označene kao izvršene/izvršne, i računanjem količnika ta dva broja, dobijaju jednake vrednosti kao one koje su generisane novim interfejsom i prikazane na slici \ref{fig:qemu-test-6c}
 
