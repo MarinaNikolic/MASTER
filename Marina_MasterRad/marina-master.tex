@@ -271,7 +271,7 @@ Rešenje koje je trenutno implementirano u \strano{GCC}-u, upravo iz tih razloga
 
 Na kraju izvršavanja instrumentalizovanog programa, svi podaci potrebni za informisanje razvojnog tima o pokrivenosti njihovog koda, nalaze se na fajl sistemu i mogu se premeštati i skladištiti. To je veoma korisno, jer pruža nove mogućnosti kombinovanja rezultata različitih merenja. Ukoliko postoji potreba da se neki test prekine na određeno vreme i započne novi, fajlovi \strano{gcda} prvog testa se mogu premestiti na drugu lokaciju, čime će se za drugi test generisati novi, i ponovo prebaciti pored objektnih pred nastavak prvog testa. Za ekonomično skladištenje mogu se koristiti i kompresovane arhive ili eksterni memorijski mediji. Međutim, njihova osnovna funkcija je da predstavljaju ulazne parametre za alat \strano{gcov}, koji na osnovu njih kreira tekstualni izveštaj, pogodniji za interpretaciju od strane razvojnog tima.
 
-Za generisanje jednog izveštaja, potrebno je alatu \strano{gcov} proslediti u vidu argumentata: jedan izvorni fajl, jedan odgovarajući strukturni fajl sa ekstenzijom \strano{gcno} i jedan fajl sa vrednostima brojača sa ekstenzijom \strano{gcda}. Poseban tekstualni fajl sa ekstenzijom \strano{gcov} se kreira za svaki instrumentalizovani fajl izvornog koda. Izveštaj se sastoji od celokupnog sadržaja izvornog koda, uz dodatak jedne vrednosti ispred svake izvršne linije, koja predstavlja broj puta koliko se ta linija izvršavala. Ukoliko se linija nije izvršila nijednom, ispred nje se stavlja posebna oznaka sastavljana od pet simbola tarabice. Prvih nekoliko linija izveštaja rezervisano je za statističke podatke o imenima fajlova od kojih je kreiran, dok se na standardni izlaz štampa najvažnija vrednost: odnos broja izvršenih linija i ukupnog broja linija, odnosno pokrivenost koda. Na listingu \ref{simple}, prikazan je primer osnovnog izveštaja, koji se generiše pozivom alata \strano{gcov} bez dodatnih opcija. Korišćenjem opcija u pozivu alata, izveštaj se može unaprediti i podacima o granama, blokovima i slično. 
+Za generisanje jednog izveštaja, potrebno je alatu \strano{gcov} proslediti u vidu argumentata: jedan izvorni fajl, jedan odgovarajući strukturni fajl sa ekstenzijom \strano{gcno} i jedan fajl sa vrednostima brojača sa ekstenzijom \strano{gcda}. Poseban tekstualni fajl sa ekstenzijom \strano{gcov} se kreira za svaki instrumentalizovani fajl izvornog koda. Izveštaj se sastoji od celokupnog sadržaja izvornog koda, uz dodatak jedne vrednosti ispred svake izvršne linije, koja predstavlja broj puta koliko se ta linija izvršavala. Ukoliko se linija nije izvršila nijednom, ispred nje se stavlja posebna oznaka sastavljana od pet simbola tarabice. Prvih nekoliko linija izveštaja rezervisano je za statističke podatke o imenima fajlova od kojih je kreiran, dok se na standardni izlaz štampa najvažnija vrednost: odnos broja izvršenih linija i ukupnog broja linija, odnosno pokrivenost koda. U okviru listinga \ref{simple}, prikazan je primer osnovnog izveštaja, koji se generiše pozivom alata \strano{gcov} bez dodatnih opcija. Korišćenjem opcija u pozivu alata, izveštaj se može unaprediti i podacima o granama, blokovima i slično. 
 \\
 
 \begin{lstlisting}[caption={Primer osnovnog izveštaja koji generiše \strano{gcov}},frame=single, label=simple]
@@ -301,7 +301,7 @@ Za generisanje jednog izveštaja, potrebno je alatu \strano{gcov} proslediti u v
         -:   19:}
 \end{lstlisting}
 
-Opcijom -b, izveštaj se obogaćuje statističkim podacima o funkcijama, osnovnim blokovima, granama i pozivima, kao na listingu \ref{branch} Osnovni blok predstavlja jedinicu koda koja se izvršava pravolinijski, odnosno ne sadrži grananja u svojoj unutrašnjosti. Ispred definicije svake funkcije, ispisuje se koliko puta je funkcija pozvana, koliko puta je regularno završena, kao i procenat izvršenih osnovnih blokova u njenoj unutrašnjosti. Nakon završne linije svakog osnovnog bloka, ispisuju se informacije o pokrivenosti poslednjeg grananja ili poziva tog bloka. Za svaku konkretnu granu, prikazuje se procenat odabira te grane u odnosu na ukupan broj prolazaka kroz celo grananje. U slučaju poziva, ta pokrivenost je uglavnom 0 ili 100\%, odnosno izvršeno/neizvršeno. 
+Opcijom -b, izveštaj se obogaćuje statističkim podacima o funkcijama, osnovnim blokovima, granama i pozivima, kao u okviru listinga \ref{branch} Osnovni blok predstavlja jedinicu koda koja se izvršava pravolinijski, odnosno ne sadrži grananja u svojoj unutrašnjosti. Ispred definicije svake funkcije, ispisuje se koliko puta je funkcija pozvana, koliko puta je regularno završena, kao i procenat izvršenih osnovnih blokova u njenoj unutrašnjosti. Nakon završne linije svakog osnovnog bloka, ispisuju se informacije o pokrivenosti poslednjeg grananja ili poziva tog bloka. Za svaku konkretnu granu, prikazuje se procenat odabira te grane u odnosu na ukupan broj prolazaka kroz celo grananje. U slučaju poziva, ta pokrivenost je uglavnom 0 ili 100\%, odnosno izvršeno/neizvršeno. 
 
 \newpage
 \begin{lstlisting}[caption={Primer izveštaja koji generiše alat \strano{gcov} sa opcijom -b},frame=single, label=branch]
@@ -347,7 +347,7 @@ call    0 returned 100%
         -:   19:}
 \end{lstlisting}
 
-Dodavanjem opcije -a, alatu se sugeriše generisanje podataka o pokrivenosti za svaki osnovni blok ponaosob i njihov ispis ispod poslednje naredbe u okviru tog bloka, kao na listingu \ref{block}. Ukoliko je linija sadržana u više pojedinačnih blokova kao poslednja, sadržaće više podataka o pokrivenosti, tačno jedan za svaki takav blok. 
+Dodavanjem opcije -a, alatu se sugeriše generisanje podataka o pokrivenosti za svaki osnovni blok ponaosob i njihov ispis ispod poslednje naredbe u okviru tog bloka, kao u okviru listinga \ref{block}. Ukoliko je linija sadržana u više pojedinačnih blokova kao poslednja, sadržaće više podataka o pokrivenosti, tačno jedan za svaki takav blok. 
 
 \newpage
 \begin{lstlisting}[caption={Primer izveštaja koji generiše alat \strano{gcov} sa opcijom -a},frame=single, label=block]
@@ -644,37 +644,39 @@ Za korisnike koji nemaju naviku da čitaju dokumentacije, specifikacije i pomoć
 \label{chp:testiranje}
 % ------------------------------------------------------------------------------
 
+U cilju procene kvaliteta implementiranog rešenja, sprovedeni su različiti procesi analize koda radi proučavanja karakteristika od interesa, testiranja korektnosti i procene performansi. U narednom tekstu biće prezentovani njihovi mehanizmi i rezultati.
+
 \section{Analiza performansi}
 
 U okviru analize performansi softverskog rešenja za prikupljanje i prikaz podataka o pokrivenosti koda u toku izvršavanja, ispitivanje je sprovedeno prema tri kriterijuma:
 \begin{enumerate}
 \item Bezbednost
-\item Složenost
+\item Algoritamska složenost
 \item Jednostavnost upotrebe
 \end{enumerate}
 
 \subsection{Bezbednost}
 
-Bezbednost predstavlja jednu od najvažnijih karakteristika softvera kao proizvoda, naročito kada je reč o višenamenskim rešenjima, kao što je slučaj sa bibliotekom \strano{libgcov}. Od nivoa ispunjenosti ovog kriterijuma, direktno zavisi i djapazon potencijalne upotrebe softverskog rešenja. U okruženja koja predstavljaju naročiti bezbednosni izazov svrstavamo najpre one sisteme od čije ispravne funkcionalnosti zavise ljudski životi, ekonomski značajni resursi i poverljivost važnih informacija. Teorijsko ispitivanje bezbednosti rešenja opisanog u ovom radu je izvršeno analizom upravljanja memorijskim resursima i mogućnosti neovlašćenog pristupa. 
+Bezbednost predstavlja jednu od najvažnijih karakteristika softvera kao proizvoda, naročito kada je reč o višenamenskim rešenjima, kao što je slučaj sa bibliotekom \strano{libcoverage}. Od nivoa ispunjenosti ovog kriterijuma, direktno zavisi i dijapazon potencijalne upotrebe softverskog rešenja. U okruženja koja predstavljaju naročiti bezbednosni izazov svrstavamo najpre one sisteme od čije ispravne funkcionalnosti zavise ljudski životi, ekonomski značajni resursi i poverljivost važnih informacija. Teorijsko ispitivanje bezbednosti rešenja opisanog u ovom radu je izvršeno analizom upravljanja memorijskim resursima i mogućnosti neovlašćenog pristupa. 
 
-Analizom izvornog koda biblioteke \strano{libcoverage}, utvrđeno je da se ukupna dinamički alocirana memorija, oslobođa naredbama: \kod{free(gcov\_var.buffer)} i \\ \kod{fclose(gcov\_var.file)} \\
-Za dokazivanje ove tvrdnje, odnosno detektovanje eventualnog nepravilnog upravljanja memorijom, iskorišćen je standardni alat za memorijsko profajliranje: \strano{Valgrind}. Ovaj alat nema mogućnost ispitivanja biblioteke, kao neizvršne jedinice sistema, zbog čega je bilo neophodno analizu sprovesti nad eksternim izvršnim programom. Korektnost rezultata je postignuta uključivanjem biblioteke u sistem, čija je bezbednost unapred potvrđenjena istim alatom. Porukom: \strano{ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)}, dokazano je da biblioteka ne prouzrokuje curenje memorije, pisanje van alociranog prostora, niti slične propuste. 
 
-Neovlašćeni pristup podacima programa je sprečen prirodom rešenja za prikupljanje i prikaz podataka. Implementacija softverskog rešenja za prikupljanje u vidu biblioteke, nasuprot eksternog alata, čini program jedinim vlasnikom podataka sopstvene deljene memorije. Rešenje koje za formatiranje i prikaz, koji za transport i obradu podataka ne koristi internet, niti bilo koju drugu mrežu, je dodatno otpornim na napade eksterne prirode. Time je ispunjen bezbednosni aspekt zaštite podataka od neovlašćenog pristupa. 
+Analizom izvornog koda biblioteke \strano{libcoverage}, utvrđeno je da je ukupna dinamički alocirana memorija dodeljena za smeštanje sadržaja promenljive \kod{gcov\_var.buffer}, zbog čega je i potpuno oslobođena  naredbom: \kod{free(gcov\_var.buffer)} pred kraj funkcije  \kod{drew\_coverage}. Za dodatno potvrđivanje ove tvrdnje, odnosno detektovanje eventualnog nepravilnog upravljanja memorijom, iskorišćen je standardni alat za memorijsko profajliranje: \strano{Valgrind}. Ovaj alat nema mogućnost ispitivanja biblioteke, kao neizvršne jedinice sistema, zbog čega je bilo neophodno analizu sprovesti nad eksternim izvršnim programom. Korektnost rezultata je postignuta korišćenjem jednostavnog programa za računanje srećnog broja \ref{section:lucky}, čija je bezbednost unapred poznata usled činjenice da ne koristi dinamičko alociranje memorije. Porukom: \strano{ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)}, pokazano je da biblioteka ne prouzrokuje curenje memorije, pisanje van alociranog prostora, niti slične propuste. 
 
-\subsection{Složenost}
+Neovlašćeni pristup podacima programa je sprečen prirodom rešenja za prikupljanje i prikaz podataka. Implementacija softverskog rešenja za prikupljanje u vidu biblioteke, nasuprot eksternog alata, čini program jedinim vlasnikom podataka sopstvene deljene memorije. Rešenje koje za transport i obradu podataka ne koristi internet, niti bilo koju drugu mrežu, je dodatno otpornim na napade eksterne prirode. Time je ispunjen bezbednosni aspekt zaštite podataka od neovlašćenog pristupa. 
 
-Algoritam prikupljanja podataka iz deljene memorije programa nije promenjen u odnosu na postojeću implementaciju. Optimizacija ispisa u fajlove \strano{gcda} je zavisna od ulaznih podataka i okruženja instrumentalizovanog programa i ne menja kvantitet jedinica za obradu, te ne utiče na procenu algoritamske složenosti. Ekvivalencija vremenske i prostorne zavtevnosti procesa prikupljanja podataka o pokrivenosti koda sa postojećom bibliotekom \strano{libgcov} se može postići pozivom funkcije \kod{drew\_coverage} kao argumenta \kod{atexit} funkcije. Zbog toga, složenost kao karatkeristika najzahtevnojeg slučaja, ostaje nepromenjena. Unapređenje performansi se može primetiti tek prilikom posmatranja prosečnog slučaja. Ranijim pozivom funkcije za prikupljanje podataka, smanjuje se količina ulaznih podataka algoritama, što u velikim sistemima, sa velikom količinom koda može dovesti do značajnog smanjenja potrebnih vremenskih i prostornih resursa. 
+\subsection{Algoritamska složenost}
 
-Do značajna uštede može se doći i prilikom instrumentalizacije kodova sa visokim procentom dugih, repetativnih jedinica u slučaju da postoji interesovanje samo za procenat pokrivenosti koda. Izvršavanje pojedinačne linije više od jednog puta, nema uticaj na računanje pokrivenosti koda, već samo na pojedinačne izveštaje. Za postizanje stoprocentne pokrivenosti, teorijski je dovoljno izvršiti svaku liniju samo jednom. Stoga prekidanje prikupljanja podataka pre kraja izvršavanja može u ovakvim slučajevima dati korektne rezultate uz upotrebu znatno manje količine resursa. Kao posledica, nastaje novi oblik testiranja programa, koji možemo nazvati: testiranje vođeno pokrivenošću. Detaljan opis biće dat kroz ilustrativan primer. Program koji će biti posmatran predstavlja server za pružanje informacija iz neke baze podataka. U zavisnosti od klijenta, server izvršava različite \strano{SQL} upite nad bazom, obrađuje rezultat i informiše klijenta. Pokretanjem servera izvršava se inicijalni deo koda, nakon čega serverska aplikacija prelazi u stanje čekanja. Ukupan broj izvršnih linija koda servera možemo označiti sa \kod{N}, a broj izvršnih linija u segmentu koda za prekid rada servera sa \kod{M}. Kod zadužen za pokretanje aplikacije i obradu svih različitih zahteva stoga ima N-M izvršnih linja, te ćemo oceniti targetiranu pokrivenost na \kod{(N-M)/100} procenata. Cilj testiranja predstavlja pokrivanje svih slučajeva upotrebe i analiza ponašanja aplikacije. Ideja testiranja vođenog pokrivenošću jeste izvršvanje minimalnog skupa testova za postizanje tog cilja, gde test u ovom primeru predstavlja obradu jednog klijenta. Nakon određenog broja pokretanja testova, signalizira se serveru da pozove funkciju \kod{drew\_coverage}. Pomoću grafičkog korisničkog interfejsa \strano{code\_coverage\_viewer}, izračunava se ukupna pokrivenost i generišu pojedninačni izveštaji. Sve dok je ukupna pokrivenost manja od \kod{(N-M)/100}, postoji slučaj upotrebe koji nije testiran. Na osnovu izveštaja, može se lako locirati k\^{o}d koji nije izvršen i inicirati i test koji vrši tu funkcionalnost.
+Algoritam prikupljanja podataka iz deljene memorije programa nije promenjen u odnosu na postojeću implementaciju. Optimizacija ispisa u fajlove \strano{gcda} je zavisna od ulaznih podataka i okruženja instrumentalizovanog programa i ne menja kvantitet jedinica za obradu, te ne utiče na procenu algoritamske složenosti. Ekvivalencija vremenske i prostorne zahtevnosti procesa prikupljanja podataka o pokrivenosti koda sa postojećom bibliotekom \strano{libgcov} se može postići pozivom funkcije \kod{drew\_coverage} kao argumenta \kod{atexit} funkcije. Zbog toga, složenost kao karatkeristika najzahtevnijeg slučaja, ostaje nepromenjena. Ranijim pozivom funkcije za prikupljanje podataka, smanjuje se količina ulaznih podataka algoritama, što u velikim sistemima, sa velikom količinom koda može dovesti do značajnog smanjenja potrebnih vremenskih i prostornih resursa. 
+
+Do značajne uštede može se doći i prilikom instrumentalizacije kodova sa visokim procentom dugih, repetativnih jedinica u slučaju da postoji interesovanje samo za procenat pokrivenosti koda. Izvršavanje pojedinačne linije više od jednog puta, nema uticaj na računanje pokrivenosti koda, već samo na pojedinačne izveštaje. Za postizanje stoprocentne pokrivenosti, teorijski je dovoljno izvršiti svaku liniju samo jednom. Stoga prekidanje prikupljanja podataka pre kraja izvršavanja može u ovakvim slučajevima dati korektne rezultate uz upotrebu znatno manje količine resursa. Kao posledica, nastaje novi oblik testiranja programa, koji možemo nazvati: testiranje vođeno pokrivenošću. 
+
+Opis testiranja vođenog pokrivenošću biće dat kroz naredni ilustrativan primer. Program koji će biti posmatran predstavlja server za pružanje informacija iz neke baze podataka. U zavisnosti od klijenta, server izvršava različite \strano{SQL} upite nad bazom, obrađuje rezultat i informiše klijenta. Pokretanjem servera izvršava se inicijalni deo koda, nakon čega serverska aplikacija prelazi u stanje čekanja. Ukupan broj izvršnih linija koda servera možemo označiti sa \kod{N}, a broj izvršnih linija u segmentu koda za prekid rada servera sa \kod{M}. K\^{o}d zadužen za pokretanje aplikacije i obradu svih različitih zahteva stoga ima N-M izvršnih linja, te ćemo oceniti ciljanu pokrivenost na \kod{(N-M)/100} procenata. Cilj testiranja predstavlja pokrivanje svih slučajeva upotrebe i analiza ponašanja aplikacije. Ideja testiranja vođenog pokrivenošću jeste izvršvanje minimalnog skupa testova za postizanje tog cilja, gde test u ovom primeru predstavlja obradu jednog klijenta. Nakon određenog broja pokretanja testova, signalizira se serveru da pozove funkciju \kod{drew\_coverage}. Pomoću grafičkog korisničkog interfejsa \strano{code\_coverage\_viewer}, izračunava se ukupna pokrivenost i generišu pojedninačni izveštaji. Sve dok je ukupna pokrivenost manja od \kod{(N-M)/100}, postoji slučaj upotrebe koji nije testiran. Na osnovu izveštaja, može se lako locirati k\^{o}d koji nije izvršen i inicirati i test koji vrši tu funkcionalnost.
 
 \subsection{Jednostavnost upotrebe}
 
-Biblioteka \strano{libcoverage} se koristi na standardan način, karakterističan za sve dinamičke biblioteke. 
+Biblioteka \strano{libcoverage} se koristi na standardan način, karakterističan za sve dinamičke biblioteke. Osnovni slučaj upotrebe predstavlja uključivanje zaglavlja \strano{coverage.h} ili deklarisanje funkcije \kod{drew\_coverage} kao eksterne, kao i poziv funkcije u željenom delu koda programa. Prilikom prevođenja do objektnih fajlova, navode se flegovi za instrumentalizaciju: \kod{-fprofile-arcs –ftest-coverage}, dok se u fazi linkovanja navodi sama biblioteka: \kod{-L<putanja> -lcoverage}.
 
-Osnovni slučaj upotrebe predstavlja uključivanje zaglavlja \strano{coverage.h} ili deklarisanje funkcije \kod{drew\_coverage} kao eksterne, kao i poziv funkcije u željenom delu koda programa. Prilikom prevodjenja do objektnih fajlova, navode se flegovi za instrumentalizaciju: \kod{-fprofile-arcs –ftest-coverage}, dok se u fazi linkovanja navodi sama biblioteka: \kod{-L<putanja> -lcoverage}.
-
-Napredni slučaj upotrebe predstavlja korišćenje signala kao okidača za poziv funkcije, i dostupno je samo korisnicima operativnih sistema sa ugradjenom podrškom za signale. Prilikom prevodjenja do objektnih fajlova, navode se flegovi za instrumentalizaciju: \kod{-fprofile-arcs –ftest-coverage}, dok se u fazi linkovanja navodi sama biblioteka: \kod{-L<putanja> –lcoverage}, kao i objektni fajl sa kodom za registaciju signala: \kod{<putanja>/coverage\_registration.o}. Poziv funkcije \kod{drew\_covergage} se inicira izvršavanjem komande: \kod{kill -10 <pidProcesa>} iz terminala. Ukoliko je signal \strano{SIGUSR1} predefinisan u korisničkom program, a korisnik želi da koristi napredni vid upotrebe, potrebno je da sam implementira ovaj mehanizam u svom programu. Jedan način biće detaljno opisan u kasnijem tekstu, u okviru opisa testiranja. 
+Napredni slučaj upotrebe predstavlja korišćenje signala kao okidača za poziv funkcije, i dostupno je samo korisnicima operativnih sistema sa ugrađenom podrškom za signale. Prilikom prevođenja do objektnih fajlova, navode se flegovi za instrumentalizaciju: \kod{-fprofile-arcs –ftest-coverage}, dok se u fazi linkovanja navodi sama biblioteka: \kod{-L<putanja> –lcoverage}, kao i objektni fajl sa kodom za registaciju signala: \kod{<putanja>/coverage\_registration.o}. Poziv funkcije \kod{drew\_covergage} se inicira izvršavanjem komande: \kod{kill -10 <pidProcesa>} iz terminala. Ukoliko je signal \strano{SIGUSR1} predefinisan u korisničkom program, a korisnik želi da koristi napredni vid upotrebe, potrebno je da sam implementira ovaj mehanizam u svom programu. Jedan način biće detaljno opisan u kasnijem tekstu, u okviru opisa testiranja. 
 
 Intuitivnost i jednostavnost upotrebe novog grafičkog interfejsa za prikaz podataka o pokrivenosti koda tokom izvršavanja, postignuta je kreiranjem kratkog i informativnog uputstva za upotrebu, kao i opisnim nazivima komponenti i njihovim specifičnim redosledom. Anketiranjem korisnika, utvrđeno je da je za ispravnu upotrebu dovoljno pročitati uputstvo iz opcije za pomoć svega jednom. Time je potpuno zadovoljen kriterijum jednostavnosti upotrebe. 
 
@@ -683,12 +685,9 @@ Intuitivnost i jednostavnost upotrebe novog grafičkog interfejsa za prikaz poda
 Testiranje validnosti i performansi softverskog rešenja za prikupljanje i prikaz podataka o pokrivenosti koda u toku izvršavanja je originalno sprovedeno nad dva veća softvera izrađena za potrebe digitalne televizije, u okviru kojih se još uvek koristi. Usled zatvorenosti koda ovih softvera, ti rezultati neće biti prikazani u ovom radu. Za potrebe demonstracije rada softverskog rešenja i rezultata testiranja, biće iskorišćena dva pogodnija primera. Najpre će biti demonstrirana korektnost na manjem, preglednijem primeru. Demonstracija mogućnosti realne primene kao i analize performansi u komercionalnim projektima biće izvršene na znatno većem projektu otvorenog koda, pod nazivom QEMU \cite{QEMU}. 
 
 \subsection{Jednostavni primer: generator srećnog broja}
+\label{section:lucky}
 
 Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{code\_coverage\_viewer} biće sprovedena nad jednostavnim primerom koji se sastoji od dva fajla izvornog koda sa pet funkcija, dve naredbe grananja i pet petlji. Poslednja petlja će biti beskonačna, u cilju bolje demonstracije primene prikupljanja koda u toku izvršavanja.
-
-\subsubsection{Opis koda primera}
-
-Program \strano{lucky} računa srećan broj na osnovu datuma rođenja, rekurzivnim sabiranjem cifara do jednocifrenog broja. Sastoji se iz dva fajla izvornog koda, pisanih u programskom jeziku C: \strano{main.c} i \strano{lucky.c}.
 
 \newpage
 
@@ -764,9 +763,13 @@ int calculate_lucky_number(int day, int month, int year){
 }
 \end{lstlisting}
 
-U okviru fajla \strano{main.c} nalazi se glavna funkcija programa koja čita datum rođenja sa standarnog ulaza, proverava validnost, poziva funkciju za računanje srećnog broja i ispisuje rezultat na standardni izlaz. Osnovna funkcionalnost se vrši u okviru beskonačne \kod{while} petlje, čija je jedinica prolaska jedno računanje srećnog broja. Na početku \kod{while} petlje, implementiran je i mehanizam za prekid izvršavanja. Pored glavne funkcije, fajl main.c, sadrži još i definicije funkcija za ispisivanje poruka dolaznog i odlaznog pozdrava, koje se pozivaju na početku i na kraju izvršavanja. Kod ovog fajla je prkazan na listingu \ref{lucky1}.
+\subsubsection{Opis koda primera}
 
-Fajl \strano{lucky.c} sadrži definicije dve funkcije, osnovne i pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. Kod fajla lucky.c prikazan je na listingu \ref{lucky2}.
+Program \strano{lucky} računa srećan broj na osnovu datuma rođenja, rekurzivnim sabiranjem cifara do jednocifrenog broja. Sastoji se iz dva fajla izvornog koda, pisanih u programskom jeziku C: \strano{main.c} i \strano{lucky.c}.
+
+U okviru fajla \strano{main.c} nalazi se glavna funkcija programa koja čita datum rođenja sa standarnog ulaza, proverava validnost, poziva funkciju za računanje srećnog broja i ispisuje rezultat na standardni izlaz. Osnovna funkcionalnost se vrši u okviru beskonačne \kod{while} petlje, čija je jedinica prolaska jedno računanje srećnog broja. Na početku \kod{while} petlje, implementiran je i mehanizam za prekid izvršavanja. Pored glavne funkcije, fajl \strano{main.c}, sadrži još i definicije funkcija za ispisivanje poruka dolaznog i odlaznog pozdrava, koje se pozivaju na početku i na kraju izvršavanja. Kod ovog fajla je prkazan u okviru listinga \ref{lucky1}.
+
+Fajl \strano{lucky.c} sadrži definicije dve funkcije, osnovne i pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. K\^{o}d fajla \strano{lucky.c} prikazan je u okviru listinga \ref{lucky2}.
 \\
 \subsubsection{Plan testiranja}
 
@@ -789,7 +792,7 @@ Plan za testiranje je definisan sledećim koracima:
 \kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage} \\
 \kod{gcc lucky.o main.o –o lucky-vers2 \textbackslash} \\
 \hspace*{6mm} \kod{-fprofile-arcs -ftest-coverage}
-\item verzija sa instrumentalizacijom i novom bibliotekom libcoverage se prevodi sa dotatnim flegovima \kod{-fprofile-arcs -ftest-coverage} isključivo u prvom koraku za instrumentalizaciju, dok se linkeru prosleđuju biblioteka \strano{libcoverage} i objektni fajl: \strano{coverage\_registration.o}: \\
+\item verzija sa instrumentalizacijom i novom bibliotekom \strano{libcoverage} se prevodi sa dotatnim flegovima \kod{-fprofile-arcs -ftest-coverage} isključivo u prvom koraku za instrumentalizaciju, dok se linkeru prosleđuju biblioteka \strano{libcoverage} i objektni fajl: \strano{coverage\_registration.o}: \\
 \kod{gcc –c lucky.c main.c –fprofile-arcs –ftest-coverage} \\
 \kod{gcc lucky.o main.o -o lucky-vers3 \textbackslash} \\ \hspace*{6mm} \kod{–L<putanja do biblioteke libcoverage> -lcoverage \textbackslash} \\
 \hspace*{6mm} \kod{<putanja do registratora/coverage\_registration.o}
@@ -805,7 +808,7 @@ Plan za testiranje je definisan sledećim koracima:
 \kod{./lucky-vers3} \\
 \end{enumerate}
 
-\item sprovodjenje inicijalnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
+\item sprovođenje inicijalnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
 \begin{enumerate}
 \item odabir opcije: \kod{y}
 \item unos: \kod{1992 <enter> 12 <enter> 17}
@@ -813,7 +816,7 @@ Plan za testiranje je definisan sledećim koracima:
 \item unos: \kod{3001 <enter> 1992 <enter> 15 <enter>}
 \item unos: \kod{12  <enter> 38 <enter> 17}
 \end{enumerate}
-\item Sprovodjenje završnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
+\item Sprovođenje završnog dela, za sve tri verzije unapred utvrđenog, slučaja upotrebe:
 \begin{enumerate}
 \item program: \strano{lucky-vers1} se prekida odabirom opcije: n
 \item program: \strano{lucky-vers2} se prekida odabirom opcije: n i generišu se izveštaji: \\
@@ -821,11 +824,11 @@ Plan za testiranje je definisan sledećim koracima:
 \kod{ gcov main.c –f  > main.fun}
 \item program \strano{lucky-vers3} se ne prekida u cilju demonstracije prikupljanja i prikaza podataka u toku izvršavanja; sprovode se sledeći koraci:
 \begin{enumerate}
-\item Pokreće se grafički korisnički interfejs code\_coverage\_viewer
-\item Odabira se radni direktorijum gde se nalazi lucky-vers3
-\item Unosi se ime programa u odgovarajuće teks polje: lucky-vers3
+\item Pokreće se grafički korisnički interfejs \strano{code\_coverage\_viewer}
+\item Odabira se radni direktorijum gde se nalazi \strano{lucky-vers3}
+\item Unosi se ime programa u odgovarajuće teks polje: \strano{lucky-vers3}
 \item Klik na dugme: \strano{Dump coverage data}
-\item Klik na dugme: \strano{Generate gcov and function} reports”
+\item Klik na dugme: \strano{Generate gcov and function files}
 \item Klik na dugme: \strano{Generate total coverage}
 \end{enumerate}
 \end{enumerate}
@@ -877,12 +880,12 @@ Pre početka testiranja, neophodno je kreirati radno okruženje, sledećim nared
 \kod{cp code\_coverage\_viewer.py test\_workspace/runtime\_coverage}
 \end{enumerate}
 
-Prvi korak testiranja obuhvata prevođenje programa na tri načina. Objektni i izvršni fajlove smeštaju se u odgovarajući radni direktorijum konkretne verzije. Za potvrdu uspešnosti ovog koraka, proverava se prisustvo fajlova gcno, komandom \kod{ls} i prisustvo funkcija: \kod{\_\_gcov\_init}, \kod{gcov\_exit} i \kod{drew\_coverage}, komandom \kod{readelf}. Dobijeni rezultati obuhvataju:
+Prvi korak testiranja obuhvata prevođenje programa na tri načina. Objektni i izvršni fajlove smeštaju se u odgovarajući radni direktorijum konkretne verzije. Za potvrdu uspešnosti ovog koraka, proverava se prisustvo fajlova \strano{gcno}, komandom \kod{ls} i prisustvo funkcija: \kod{\_\_gcov\_init}, \kod{gcov\_exit} i \kod{drew\_coverage}, komandom \kod{readelf}. Dobijeni rezultati obuhvataju:
 \begin{enumerate}
 \item prisustvo fajlova: \strano{main.gcno} i \strano{lucky.gcno} isključivo u direktorijumima instrumentalizovanih verzija
-\item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{drew\_coverage} i odustvo funkcije \kod{gcov\_exit} u programu \strano{lucky-vers3}
-\item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{gcov\_exit} i odustvo funkcije \kod{drew\_coverage} u programu \strano{lucky-vers2}
 \item odsustvo funkcija \kod{\_\_gcov\_init}, \kod{drew\_coverage} i \kod{gcov\_exit} u programu \strano{lucky-vers1}
+\item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{gcov\_exit} i odustvo funkcije \kod{drew\_coverage} u programu \strano{lucky-vers2}
+\item prisustvo funkcija \kod{\_\_gcov\_init} i \kod{drew\_coverage} i odustvo funkcije \kod{gcov\_exit} u programu \strano{lucky-vers3}
 \end{enumerate}
 
 \noindent što predstavlja ispravne rezultate. Sprovođenje prvog koraka testiranja i rezultati istog, prikazani su na slici \ref{fig:lucky-test-1}.
@@ -914,7 +917,7 @@ Naredni korak predstavlja najbitniji korak testiranja. Materijal generisan u ovo
   \label{fig:lucky-test-3}
 \end{figure}
 
-Program \strano{lucky-vers3} se ne prekida odmah, već se najpre vrši kreiranje fajlova gcda i izveštaja. Pokreće se \strano{code\_coverage\ viewer} i nakon pritiska na dugme: \strano{Choose workspace} odabira se radni direktorijum: \strano{test\_workspace/version\_03}. U tekstualno polje za unos imena programa, unosi se: \strano{lucky-vers3}, a zatim inicira signal za poziv funkcije \kod{drew\_coverage} klikom na dugme \strano{Dump coverage data}, a uspešnost ovog dela procedure može se lako potvrditi postojanjem nepraznih fajlova gcda u radnom direktorijumu. Dugme: \strano{Generate gcov and fun files} pokreće kreiranje izveštaja, čija imena smešta u drvoliku komponentu, dok se sadržaj selektovanog izveštaja prikazuje u desnoj polovini ekrana. Slika \ref{fig:lucky-test-4} vizuelno demonstrira rezultate ovog koraka.
+Program \strano{lucky-vers3} se ne prekida odmah, već se najpre vrši kreiranje fajlova \strano{gcda} i izveštaja. Pokreće se \strano{code\_coverage\ viewer} i nakon pritiska na dugme: \strano{Choose workspace} odabira se radni direktorijum: \strano{test\_workspace/version\_03}. U tekstualno polje za unos imena programa, unosi se: \strano{lucky-vers3}, a zatim inicira signal za poziv funkcije \kod{drew\_coverage} klikom na dugme \strano{Dump coverage data}, a uspešnost ovog dela procedure može se lako potvrditi postojanjem nepraznih fajlova \strano{gcda} u radnom direktorijumu. Dugme: \strano{Generate gcov and fun files} pokreće kreiranje izveštaja, čija imena smešta u drvoliku komponentu, dok se sadržaj selektovanog izveštaja prikazuje u desnoj polovini ekrana. Slika \ref{fig:lucky-test-4} vizuelno demonstrira rezultate ovog koraka.
 
 \begin{figure}[!ht]
   \centering
@@ -923,9 +926,7 @@ Program \strano{lucky-vers3} se ne prekida odmah, već se najpre vrši kreiranje
   \label{fig:lucky-test-4}
 \end{figure}
 
-Poslednji korak testiranja obuhvata analizu i validaciju rezultata prethodnih koraka. 
-
-Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1}, \strano{lucky-vers2} i \strano{lucky-vers3} na standardni izlaz. U sva tri slučaja ispis iz inicijalnog dela slučaja upotrebe, odnosno zaključno sa poslednjom porukom sadržaja: \strano{Your lucky number is: 5}, je identičan. Time je zadovoljen prvi kriterijum validacije ispisa, odnosno regularnost izvršavanja programa tokom instrumentalizacije. Ispis programa \strano{lucky-vers3} ne sadrži oproštajnu poruku: \strano{Goodbye}, već samo ispise iz registarora i biblioteke, čime su zadovoljena i preostala dva kriterijuma validnosti ispisa. 
+Poslednji korak testiranja obuhvata analizu i validaciju rezultata prethodnih koraka. Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1}, \strano{lucky-vers2} i \strano{lucky-vers3} na standardni izlaz. U sva tri slučaja ispis iz inicijalnog dela slučaja upotrebe, odnosno zaključno sa poslednjom porukom sadržaja: \strano{Your lucky number is: 5}, je identičan. Time je zadovoljen prvi kriterijum validacije ispisa, odnosno regularnost izvršavanja programa tokom instrumentalizacije. Ispis programa \strano{lucky-vers3} ne sadrži oproštajnu poruku: \strano{Goodbye}, već samo ispise iz registarora i biblioteke, čime su zadovoljena i preostala dva kriterijuma validnosti ispisa. 
 
 \begin{figure}[!ht]
   \centering
@@ -936,7 +937,7 @@ Na slici \ref{fig:lucky-test-5}. prikazan je ispis programa: \strano{lucky-vers1
 
 Zajedničkom analizom koda i ispisa različitih verzija programa \strano{lucky}, mogu se izvesti očekivane vrednosti za izveštaje. Celokupni kod fajla izvornog koda: \strano{lucky.c} se izvršava identičan broj puta u sva tri slučaja. Prikupljanje podataka statičkom bibliotekom \strano{libgcov} se aksiomatski uzima za ispravno, kao sastavni dao programskog prevodioca \strano{GCC}. Usled toga se jednom potvrdom ispravnog prikupljanja podataka novom bibliotekom može smatrati jednakost izveštaja: \\ \strano{test\_workspace/version\_02/lucky.c.gcov} i \strano{test\_workspace/version\_03/lucky.c.gcov}, odnosno: \\
 \strano{test\_workspace/version\_02/lucky.fun} i \strano{test\_workspace/version\_03/lucky.fun}  \\
-Linux komandom \strano{diff} ili jednostavnim posmatranjem može se potvrditi da je kriterijum jednakosti ispunjen, što je vizuelno prikazano na slici \ref{fig:lucky-test-6}.
+\strano{Linux} komandom \strano{diff} ili jednostavnim posmatranjem može se potvrditi da je kriterijum jednakosti ispunjen, što je vizuelno prikazano na slici \ref{fig:lucky-test-6}.
 
 \begin{figure}[!ht]
   \centering
@@ -963,17 +964,17 @@ Svi koraci plana za testiranje, definisanog na početku ove sekcije, su dakle is
 
 Za demonstraciju korektnosti rada biblioteke \strano{libcoverage} i grafičkog korisničkog interfejsa \strano{code\_coverage\_viewer} u realnim situacijama odabran je projekat \strano{QEMU}, najpre zbog svoje veličine i značaja, ali i zbog karakteristika na kojima se mogu dobro sagledavati različite prepreke koje se mogu javiti prilikom infiltracije novog softverskog rešenja za prikupljanje podataka iz izvršavanja u realni projekat, kao i načini za njihovo prevazilaženje.
 
-\subsubsection{Šta je QEMU}
+\subsubsection{Uvod u QEMU}
 
-\strano{QEMU} je slobodni softver otvorenog koda, čija osnovna funkcija predstavlja emuliranje operativnih sistema ili programa na mašini različite arhitekture od njih samih. Spektar podržanih arhitektura na kojima se \strano{QEMU} može pokrenuti ili koje može emulirati je veoma širok, i obuhvata \strano{MIPS}, \strano{ARM}, \strano{x86}, \strano{PPC} i mnoge druge.
+\strano{QEMU} \cite{QEMU} je slobodni softver otvorenog koda, čija osnovna funkcija predstavlja emuliranje operativnih sistema ili programa na mašini različite arhitekture od njih samih. Spektar podržanih arhitektura na kojima se \strano{QEMU} može pokrenuti ili koje može emulirati je veoma širok, i obuhvata \strano{MIPS}, \strano{ARM}, \strano{x86}, \strano{PPC} i mnoge druge.
 \strano{QEMU} ima dva režima rada:
 \begin{enumerate}
 \item sistemski: potpuna emulacija jednog sistema (npr. operativnog) na drugom
-\item korisnički (samo za linux): emulacija izvršavanja jedinstvenog procesa, prevedenog za jednu arhitekturu, na mašini druge arhitekure.
+\item korisnički (samo za \strano{Linux}): emulacija izvršavanja jedinstvenog procesa, prevedenog za jednu arhitekturu, na mašini druge arhitekure.
 \end{enumerate}
 Za potrebe ovog testiranja, instrumentalizovaće se kompletni kod \strano{QEMU}-a, ali će pokretanje biti ograničeno na dva programa korisničkog režima koji simuliraju rad \strano{MIPS} i \strano{ARM} procesora.
 
-\subsubsection{Opis koda i kako radi \strano{QEMU}}
+\subsubsection{Opis koda i sistema za prevođenja projekta \strano{QEMU}}
 
 Osnovni radni direktorijum \strano{QEMU}-a sadrži veliki broj skripti za definisanje fleksibilnih parametara, \strano{makefile}-ova sa instrukcijama za izgradnju sistema i fajlova izvornog koda pisanih u programskom jeziku C. Skripte za konfiguraciju, osnovni \strano{makefile}-ovi i kodovi pojedenih alata su smešteni u sam koreni direktorijum projekta. Ostatak je grupisan u poddirektorijume prema funkcionalnosti i/ili programu kome pripadaju.
 
@@ -995,11 +996,11 @@ Pravila za izgradnju svih programa i alata u sklopu \strano{QEMU} projekta su de
 Za razliku od jednostavnog primera kao što je program za računanje srećnog broja, sistem pravila za prevođenje, kao i sam kod \strano{QEMU}-a su znatno složeniji. Stoga je i implementacija podrške za prikupljanje i prikaz podataka u toku izvršavanja iziskivala veći stepen prilagođavanja i kvantitet izmena. 
 
 Prva iteracija je obuhvatala izmene prevođenja, odnosno dodavanje flegova za instrumentalizaciju, biblioteke \strano{libcoverage} i objektnog fajla \strano{coverage\_registration.o}. 
-Očekivana složenost ovog procesa u slučaju prosečnog, većeg projekta, je izrazito velika, iz razloga što zahteva poznavanje sistema za izgradnju softvera do najsitnijih detanja. Za prilagođavanje softvera digitalne televizije, na kojima je biblioteka \strano{libcoverage} originalno testirana, bilo je potrebno više nedelja rada, kao i asistencija stručnjaka za njihove sisteme izgradnje. Međutim, planski i ciljani odabir upravo \strano{QEMU}-a za ovo testiranje, je dosta redukovao vreme potrebno za prvu iteraciju prilagođavanja. Već ugrađena podrška za staitičku instrumentalizaciju na kraju izvršavanja je poslužila kao dobar šablon za oponašanje, koji je nadomestio nedostatak poznavanja sistema. 
+Očekivana složenost ovog procesa u slučaju prosečnog, većeg projekta, je izrazito velika, iz razloga što zahteva poznavanje sistema za izgradnju softvera do najsitnijih detanja. Za prilagođavanje softvera digitalne televizije, na kojima je biblioteka \strano{libcoverage} originalno testirana, bilo je potrebno više nedelja rada, kao i asistencija stručnjaka za njihove sisteme izgradnje. Međutim, planski i ciljani odabir upravo \strano{QEMU}-a za ovo testiranje, je dosta redukovao vreme potrebno za prvu iteraciju prilagođavanja. Već ugrađena podrška za statičku instrumentalizaciju na kraju izvršavanja je poslužila kao dobar šablon za oponašanje, koji je nadomestio nedostatak poznavanja sistema. 
 
 Po ugledu na opciju: \kod{--enable gcov}, u skriptu za konfigurisanje je uvedena nova opcija: \kod{--enable-runtime-gcov}, koja takođe uslovljava uključivanje flegova za instrumentalizaciju u toku prevođenja izvornog fajla do objektnog, ali u proces linkovanja umesto njih uslovljava prisustvo dinamičke biblioteke \strano{libcoverage} i objektnog fajla za registraciju signala. Ispisivanje odgovarajućih vrednosti u konfiguracioni fajl: \strano{config\_host.mak} urađen je identično kao u slučaju postojeće opcije \kod{--enable gcov}. 
 
-Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikpljanja podaka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure} u git formatu, prikazane su na listingu \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su na listingu \ref{qemu-diff-2}. \\
+Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikupljanja podataka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure}, prikazane su u okviru listinga \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su u okviru listinga \ref{qemu-diff-2}. \\
 
 \begin{lstlisting}[caption={Izmene skripte \strano{configure}},frame=single, label=qemu-diff-1]
 diff --git a/configure b/configure
@@ -1076,7 +1077,7 @@ Promena konkretnog signala ne bi proizvela drugačije rezultate, usled maksimaln
 Inicijalni plan ugrađivanja podrške za pokretanje prikupljanja podataka iz izvršavanja \strano{POSIX} signalom, podrazumevao je bezuslovnu modifikaciju ponašanja uslovljenog prijemom signala \strano{SIGUSR1} u okviru funkcije \strano{host\_signal\_handler}. Razmatran je zbog svoje jednostavnosti i lakoće implementacije. Međutim, usled nemogućnosti pravilnog razlikovanja upotebe signala \strano{SIGUSR1} kao okidača prikupljanja podataka o pokrivenosti i slučaja kada ga treba prosledti emuliranom programu, nastala je potreba za dodatnim usavršavanjem. 
 Na formiranje nove ideje uticalo je posmatranje argumentata funkcije \kod{host\_signal\_handler}, tačnije onog argumenta koji predstavlja instancu strukture \kod{siginfo\_t}. 
 
-U okviru zaglavlja \strano{signal.h}, nalazi se više funkcija koje se mogu koristiti za slanje signala. Jednostavniji od ponuđenih mehanizama, slanje signala bez dodatnih informacija funkcijom \kod{kill}, implementiran je u okviru interfejsa \strano{code\_coverage\_viewer} kao rešenje koje zadovoljava očekivane funkcionalne zahteve. Sa druge strane, u cilju mogućnosti emuliranja potpuno proizvoljnog programa, koji može komunicirati i naprednijim mehanizmom, slanjem signala sa dodatnim informacijama funkcijom \kod{sigqueue}, trenutna implementacija \strano{QEMU}-a sadrži ugrađenu podršku i za prosleđivanje poruke poslate sa signalom. Sadržaj poruke je predstavljen jedinstvenom celobrojnom vrednošću i/ili pokazivačem na strukturu u memoriji proizvoljnog tipa, a čuva se posebnom polju strukture tipa \kod{siginfo\_t}: uniji \kod{sigval}. Korisnički emulatori \strano{QEMU}-a u regularnom slučaju ne vrše čitanje i obradu nijedne informacije po prijemu signala, što pruža dovoljan prostor za nadogradnju \strano{signal-handler}-a u fazi između prijema i prosleđivanja. Pozitivna vrednost promenljive \kod{RUNTIME\_GCOV}, koja se prosleđuje prilikom prevođenja u slučaju instrumentalizacije novim pristupom, uslovljava čitanje vrednosti broja signala i prateće poruke i dodatnu akciju u slučaju predefinisane kombinacije za prikupljanje podataka iz izvršavanja: signal \strano{SIGUSR1} i tajna poruka: 45949. Specijalna celobrojna vrednost 45949 je dobijena iz poruke \kod{call drew\_coverage} kombinacijom \strano{md5} algoritma za heširanje i osnovnih aritmetičkih operacija. Kompletne izmene koda \strano{QEMU}-a u sklopu druge iteracije implementacije, prikazane su, u git formatu, na listingu \ref{qemu-diff-3}.
+U okviru zaglavlja \strano{signal.h}, nalazi se više funkcija koje se mogu koristiti za slanje signala. Jednostavniji od ponuđenih mehanizama, slanje signala bez dodatnih informacija funkcijom \kod{kill}, implementiran je u okviru interfejsa \strano{code\_coverage\_viewer} kao rešenje koje zadovoljava očekivane funkcionalne zahteve. Sa druge strane, u cilju mogućnosti emuliranja potpuno proizvoljnog programa, koji može komunicirati i naprednijim mehanizmom, slanjem signala sa dodatnim informacijama funkcijom \kod{sigqueue}, trenutna implementacija \strano{QEMU}-a sadrži ugrađenu podršku i za prosleđivanje poruke poslate sa signalom. Sadržaj poruke je predstavljen jedinstvenom celobrojnom vrednošću i/ili pokazivačem na strukturu u memoriji proizvoljnog tipa, a čuva se posebnom polju strukture tipa \kod{siginfo\_t}: uniji \kod{sigval}. Korisnički emulatori \strano{QEMU}-a u regularnom slučaju ne vrše čitanje i obradu nijedne informacije po prijemu signala, što pruža dovoljan prostor za nadogradnju \strano{signal-handler}-a u fazi između prijema i prosleđivanja. Pozitivna vrednost promenljive \kod{RUNTIME\_GCOV}, koja se prosleđuje prilikom prevođenja u slučaju instrumentalizacije novim pristupom, uslovljava čitanje vrednosti broja signala i prateće poruke i dodatnu akciju u slučaju predefinisane kombinacije za prikupljanje podataka iz izvršavanja: signal \strano{SIGUSR1} i tajna poruka: 45949. Specijalna celobrojna vrednost 45949 je dobijena iz poruke \kod{call drew\_coverage} kombinacijom \strano{md5} algoritma za heširanje i osnovnih aritmetičkih operacija. Kompletne izmene koda \strano{QEMU}-a u sklopu druge iteracije implementacije, prikazane su, u okviru listinga \ref{qemu-diff-3}.
 
 \newpage
 
@@ -1147,11 +1148,11 @@ int main(int argc, char**argv){
 \end{lstlisting}
 
 
-Izmenom okidača za ispis podataka iz izvršavanja u fajlove gcda, došlo je do nekompatibilnosti interfejsa \strano{code\_coverage\_viewer} i programa instrumentalizovane verzije \strano{QEMU} skupa emulatora. 
+Izmenom okidača za ispis podataka iz izvršavanja u fajlove \strano{gcda}, došlo je do nekompatibilnosti interfejsa \strano{code\_coverage\_viewer} i programa instrumentalizovane verzije \strano{QEMU} skupa emulatora. 
 
-Prevazilaženje ove prepreke ostvareno je kreiranjem posredničkog programa, sa ulaznim interfejsom kompatibilnim mehanizmu strano{code\_coverage\_viewer}-a, odnosno prijemu signala bez poruke, i izlaznim interfejsom kompatibilnim \strano{QEMU}-u, odnosno slanju signala sa porukom. Program nosi naziv: \strano{messanger}, što simbolizuje njegovu ulogu glasnika između novog grafičkog interfejsa i \strano{QEMU}-a. 
+Prevazilaženje ove prepreke ostvareno je kreiranjem posredničkog programa, sa ulaznim interfejsom kompatibilnim mehanizmu \strano{code\_coverage\_viewer}-a, odnosno prijemu signala bez poruke, i izlaznim interfejsom kompatibilnim \strano{QEMU}-u, odnosno slanju signala sa porukom. Program nosi naziv: \strano{messanger}, što simbolizuje njegovu ulogu glasnika između novog grafičkog interfejsa i \strano{QEMU}-a. 
 
-Program messanger se pokreće sa jednim argumentom komandne linije koji predstavlja identifikator instrumentalizovanog pokrenutog \strano{QEMU} emulatora kome treba preneti poruku. Nakon registracije \strano{signal-handler}-a za \strano{SIGUSR1}, \strano{messanger} prelazi u stanje čekanja. Po prijemu odgovarajućeg signala, emituje se signal sa porukom 45494, koji uslovljava poziv funkcije \kod{drew\_coverage} u emulatoru sa identifikatorom iz argumenta komandne linije. Kod posredničkog programa, pisan u programskom jeziku C, prikazan je na listingu \ref{qemu-diff-4}.
+Program messanger se pokreće sa jednim argumentom komandne linije koji predstavlja identifikator instrumentalizovanog pokrenutog \strano{QEMU} emulatora kome treba preneti poruku. Nakon registracije \strano{signal-handler}-a za \strano{SIGUSR1}, \strano{messanger} prelazi u stanje čekanja. Po prijemu odgovarajućeg signala, emituje se signal sa porukom 45494, koji uslovljava poziv funkcije \kod{drew\_coverage} u emulatoru sa identifikatorom iz argumenta komandne linije. Kod posredničkog programa, pisan u programskom jeziku C, prikazan je u okviru listinga \ref{qemu-diff-4}.
 
 Nakon uspešnog okončavanja druge iteracije implementacije podrške za prikupljanje i prikaz podataka u toku izvršavanja u okviru projekta \strano{QEMU}, stvorili su se optimalni uslovi za finalno testiranje. 
 
@@ -1217,7 +1218,7 @@ za svaki pojedinačni emulator QEMU projekta
 \item Odabira se radni direktorijum \strano{<qemu\_vers3>/qemu/}
 \item Unosi se ime programa u odgovarajuće tekstualno polje: \strano{messanger}
 \item  Klik na dugme: \strano{Dump coverage data} (Napomena: Signal će biti poslat svim procesima sa imenom \strano{messanger} tako da će biti obuhvaćena oba emulatora)
-\item Klik na dugme: \strano{Generate gcov and function reports}
+\item Klik na dugme: \strano{Generate gcov and function files}
 \item Klik na dugme: \strano{Generate total coverage}
 \end{enumerate}
 \end{enumerate}
@@ -1379,7 +1380,7 @@ Programi treće verzije se ne prekidaju do kraja testiranja. Pokreću se dve ins
 Na slici \ref{fig:qemu-test-6a}. je dat prikaz ispisa svih šest programa nakon sprovedenog celokupnog slučaja upotrebe. Očekivano poklapanje ispisa koji vodi poreklo iz inicijalnog dela je potvrđeno, stoga je prvi kriterijum validacije ispisa zadovoljen. Pristustvo oproštajne poruke \strano{Goodbye} u ispisima terminiranih programa, kao i poruke o prikupljanju podataka
 potvrđuju ispunjenost preostalih kriterijuma validacije ispisa.
 
-Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. Na listingu \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
+Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: \kod{host\_signal\_handler}, za koju se te vrednosti mogu i statički izračunati, analizom koda i plana testiranja. Programima verzije čiji su instrumentalizacioni simboli razrešeni statičkom binliotekom \strano{libgcov}, nije poslat nijedan signal tokom testiranja. Stoga je očekivana vrednost pokrivenosti funkcije koja odgovara na njih jednaka nuli. U okviru listinga \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
 
 \begin{figure}[!ht]
   \centering
@@ -1390,7 +1391,7 @@ Validacija samih vrednosti podataka o pokrivenosti je sprovedena nad funkcijom: 
 
 \newpage
 
-Na listingu \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}.
+U okviru listinga \ref{qemu-test-6b-1} su prikazani delovi izveštaja: \strano{signal.c.gcov}, koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}.
 Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \kod{\#\#\#\#\#} pored linije sa nazivom i argumentima funkcije potvrđuje da se funkcija nije čak ni dlimično izvršavala, odnosno ispunjenje prvog kriterijuma validnosti izveštaja. Programima čije podatke prikuplja biblioteka \strano{libcoverage} je poslat tačno po jedan signal: \strano{SIGUSR1} sa porukom 45949. Na osnovu toga, može se zaključiti da se funkcija \kod{host\_signal\_handler} izvršavala tačno jednom po programu, tokom koji je uslovljen tom kombinacijom. Pozivom funkcije \kod{coverage\_handler}, podaci se prikupljaju iz instrumentalizacionih struktura i beleže. Nakon kreiranja fajlova \strano{gcda}, izvršavanje funkcije \kod{host\_signal\_handler} se nastavlja, s tim što zbog jedinstvenog preseka stanja, podaci o daljem radu programa neće biti zabeleženi. 
 \\
 
@@ -1419,7 +1420,7 @@ Može se primetiti da nijedna linija koda nije označena kao izvršena. Niska \k
     #####:  666:    sig = host_to_target_signal(host_signum);
 \end{lstlisting}
 
-Na listingu \ref{qemu-test-6b-2} su prikazani delovi izveštaja:
+U okviru listinga \ref{qemu-test-6b-2} su prikazani delovi izveštaja:
 \strano{signal.c.gcov} koji sadrže podatke o kvantitetu izvršavanja linija koda funkcije: \kod{host\_signal\_handler}. Linije koda, zaključno sa onom koja se odnosi na poziv funkcije \kod{coverage\_handler}, koje pripadaju toku izvršavanja karakrerističnom za prijem signala \strano{SIGUSR1} sa porukom  45949, su označene kao jedinstveno izvršene. Sve linije koda koje se izvršavaju nakon poziva funkcije: \kod{coverage\_handler}, odnosno kreiranja fajlova \strano{gcda} su označene ka neizvršene. Dobijeni rezultati su u skladu sa očekivanjima i zahtevima drugog kriterijuma validacije izveštaja. Stoga se i ovaj kriterijum može označiti kao ispunjen. 
 
 \newpage
