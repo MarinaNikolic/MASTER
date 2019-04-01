@@ -68,11 +68,15 @@
 % \datumodbrane{}
 
 % Apstrakt na srpskom jeziku (u odabranom pismu)
-\apstr{tekst apstrakta rada
+\apstr{ Za olakšavanje procesa testiranja i optimizacije, mogu se koristiti podaci o pokrivenosti koda, koje generišu alati za profajliranje. Većina poznatijih prevodilaca ima u sebi ugrađenu podršku za prikupljanje podataka iz izvršavanja i njihovu transformaciju do informacije o pokrivenosti različitih jedinica koda. Po svojim performansama ističe se programski prevodilac \strano{GCC}, čiji alat \strano{gcov} generiše izveštaje sa frekvencijama izvršavanja pojedinačnih linija, blokova, funkcija i grana, kao i podatkom o pokrivenosti na nivou fajla izvornog koda. 
+
+Osnovne mane trenutne, zvanične implementacije obuhvataju nedostupnost podataka pre završetka rada programa, kao i otežano pregledanje konačnih rezultata na nivou celokupnog projekta. Profajliranje programa sa izuzetno dugim vremenom rada, koji se ne mogu prekidati za potrebe analize, ili koriste privremena skladišta kojima je pristup ograničen na vremenski okvir trajanja izvršavanja, stoga nije moguće ili je izuzetno otežano u okviru dostupne implementacije. Nedostatak informacije o pokrivenosti na nivou modula većeg od pojedinačnog fajla izvornog koda, kao i strukturnog pregledanja svih izveštaja, može uticati na kreiranje pogrešnog zaključka o rezultatima analize i time usmeriti proces testiranja ili optimizacije u lošem smeru.
+
+U okviru ovog rada implementirana je podrška za prikupljanje i prikaz podataka iz izvršavanja programa, prevedenih programskim prevodiocem \strano{GCC}, u toku izvršavanja. Kreirana je nova biblioteka, koja omogućava dostupnost podataka od interesa pre završetka rada programa, kao i novi grafički alat za strukturno i intuitivno pregledanje konačnih rezultata njihove obrade. Testiranje je sprovedeno nad kompleksnim projektom otvorenog koda pod nazivom \strano{QEMU} i prikazano na način koji ujedno predstavlja i uputstvo za upotrebu ovog rešenja za dobijanje informacije o pokrivenosti koda drugih softvera. 
 }
 
 % Ključne reči na srpskom jeziku (u odabranom pismu)
-\kljucnereci{profajliranje, pokrivenost koda, GCC, GCOV}
+\kljucnereci{profajliranje, pokrivenost koda, \strano{GCC}, \strano{gcov}}
 
 
 % Komande za naglašavanje
