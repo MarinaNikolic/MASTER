@@ -687,18 +687,21 @@ Testiranje validnosti i performansi softverskog rešenja za prikupljanje i prika
 \subsection{Jednostavni primer: generator srećnog broja}
 \label{section:lucky}
 
-Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{code\_coverage\_viewer} biće sprovedena nad jednostavnim primerom koji se sastoji od dva fajla izvornog koda sa pet funkcija, dve naredbe grananja i pet petlji. Poslednja petlja će biti beskonačna, u cilju bolje demonstracije primene prikupljanja koda u toku izvršavanja.
+Demonstracija korišćenja bibliteke \strano{libcoverage} i interfejsa \strano{code\_coverage\_viewer} biće sprovedena nad jednostavnim primerom koji se sastoji od dva fajla izvornog koda sa šest funkcija, tri naredbe grananja i pet petlji. Poslednja petlja će biti beskonačna, u cilju bolje demonstracije primene prikupljanja koda u toku izvršavanja.
 
 \newpage
 
 \begin{lstlisting}[caption={Izvorni kod: \strano{main.c}},frame=single, label=lucky1]
 #include <stdio.h>
+
 void greeting(){
 	printf("Hello, I am a program that calculates your lucky number\n");
 }
+
 void farewell(){
 	printf("Goodbye\n");
 }
+
 int main(){
 	greeting();
 	while(1){
@@ -706,7 +709,7 @@ int main(){
 		char c;
 		scanf("\n%c", &c);
 		if(c == 'n'){
-			break; 
+			break;
 		}
 		else if(c == 'y'){
 			int date, month, year;
@@ -724,42 +727,69 @@ int main(){
 			}
 			printf("Enter your date of birth: ");
 			scanf("%d", &date);
-			while((month==2 && (date<1 || date >29)) || ((month==4 || month==6 || month==9 || month==11) && (date<1 || date >30)) || ((month==1 || month==3 || month==5 || month==7 || month==8 || month==10 || month==12) && (date<1 || date >31)) || (((year%400)!=0 && ((year%4)!=0 || (year%100)==0)) && month==2 && date==29)){
-				printf("Please enter correct date of %d. month and %d. year: ", month, year);
+			while(is_date_incorrect(date, month, year)){
+				printf("Please enter correct date of %d. month and %d. year: ", \
+					month, year);
 				scanf("%d", &date);
 			}	
 			int lucky = calculate_lucky_number(date,month,year);
 			printf("Your lucky number is: %d\n",lucky);
 		}
 	}
+	
 	farewell();
 	return 0;
 }
 \end{lstlisting}
 
 \begin{lstlisting}[caption={Izvorni kod: \strano{lucky.c}},frame=single, label=lucky2]
-int to_digit(int value){
-	if (value < 10) 
-		return value;
-	else{
-		int sum = 0;
-		int base = value;
-		int leftover = 0;
-		while (base != 0){
-			leftover = base % 10;
-			sum = sum + leftover;
-			base = base / 10;
-		}
-		return to_digit(sum);
-	}
+#include <stdio.h>
+
+void greeting(){
+	printf("Hello, I am a program that calculates your lucky number\n");
 }
-int calculate_lucky_number(int day, int month, int year){
-	int day_code = to_digit(day);
-	int month_code = to_digit(month);
-	int year_code = to_digit(year);
-	int sum_codes = day_code + month_code + year_code;
-	int final_code = to_digit(sum_codes);
-	return final_code;
+
+void farewell(){
+	printf("Goodbye\n");
+}
+
+int main(){
+	greeting();
+	while(1){
+		printf("Please, enter y/n to procced/end program\n");
+		char c;
+		scanf("\n%c", &c);
+		if(c == 'n'){
+			break;
+		}
+		else if(c == 'y'){
+			int date, month, year;
+			printf("Enter your year of birth: ");
+			scanf("%d", &year);
+			while(year<1900 || year>3000){
+				printf("Please enter year between 1900 and 3000: ");
+				scanf("%d", &year);
+			}
+			printf("Enter your month of birth: ");
+			scanf("%d", &month);
+			while(month<1 || month>12){
+				printf("Please enter month between 1 and 12: ");
+				scanf("%d", &month);
+			}
+			printf("Enter your date of birth: ");
+			scanf("%d", &date);
+			while(is_date_incorrect(date, month, year)){
+				printf("Please enter correct date of %d. month and %d. year: ", \
+					month, year);
+				scanf("%d", &date);
+			}	
+			int lucky = calculate_lucky_number(date,month,year);
+			printf("Your lucky number is: %d\n",lucky);
+		}
+	}
+	
+	farewell();
+	return 0;
 }
 \end{lstlisting}
 
@@ -769,7 +799,7 @@ Program \strano{lucky} računa srećan broj na osnovu datuma rođenja, rekurzivn
 
 U okviru fajla \strano{main.c} nalazi se glavna funkcija programa koja čita datum rođenja sa standarnog ulaza, proverava validnost, poziva funkciju za računanje srećnog broja i ispisuje rezultat na standardni izlaz. Osnovna funkcionalnost se vrši u okviru beskonačne \kod{while} petlje, čija je jedinica prolaska jedno računanje srećnog broja. Na početku \kod{while} petlje, implementiran je i mehanizam za prekid izvršavanja. Pored glavne funkcije, fajl \strano{main.c}, sadrži još i definicije funkcija za ispisivanje poruka dolaznog i odlaznog pozdrava, koje se pozivaju na početku i na kraju izvršavanja. Kod ovog fajla je prkazan u okviru listinga \ref{lucky1}.
 
-Fajl \strano{lucky.c} sadrži definicije dve funkcije, osnovne i pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. K\^{o}d fajla \strano{lucky.c} prikazan je u okviru listinga \ref{lucky2}.
+Fajl \strano{lucky.c} sadrži definicije tri funkcije: jedne osnovne i dve pomoćne. Osnovna funkcija: \kod{calculate\_lucky\ number} se poziva iz glavne funkcije programa. Kao ulazne podatke prima tri celobrojne vrednosti za datum rođenja. Zatim računa srećan broj pomoćnom funkcijom za pretvaranje broja u jednocifreni zbir cifara: \kod{to\_digit}. Povratna vrednost predstavlja jednu celobrojnu vrednost, odnosno izračunati srećni broj. Druga pomoćna funkcija služi za proveru korektnosti unetog datuma rođenja, poziva se takođe iz glavne funkcije programa i uslovljava izvršavanje funkcije \kod{calculate\_lucky\ number}. K\^{o}d fajla \strano{lucky.c} prikazan je u okviru listinga \ref{lucky2}.
 \\
 \subsubsection{Plan testiranja}
 
@@ -921,7 +951,7 @@ Program \strano{lucky-vers3} se ne prekida odmah, već se najpre vrši kreiranje
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky4-ng.png}
+  \includegraphics[width=\textwidth]{img/lucky4-ng-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 4c}
   \label{fig:lucky-test-4}
 \end{figure}
@@ -946,13 +976,13 @@ Zajedničkom analizom koda i ispisa različitih verzija programa \strano{lucky},
   \label{fig:lucky-test-6}
 \end{figure}
 
-Sa druge strane, izveštaji za fajl izvornog koda: \strano{main.c}, moraju se razlikovati tačno za poslednju iteraciju u okviru najveće petlje i za po jedan poziv funkcija \kod{farewell} and \kod{return}. Na slici \ref{fig:lucky-test-5}, na kojoj je prikazan izlaz komande \strano{diff} i za ova dva \strano{gcov} izveštaja, jasno se vidi da su ta očekivanja ispunjena. 
+Sa druge strane, izveštaji za fajl izvornog koda: \strano{main.c}, moraju se razlikovati tačno za poslednju iteraciju u okviru najveće petlje i za po jedan poziv funkcija \kod{farewell} and \kod{return}. Na slici \ref{fig:lucky-test-6}, na kojoj je prikazan izlaz komande \strano{diff} i za ova dva \strano{gcov} izveštaja, jasno se vidi da su ta očekivanja ispunjena. 
 
 Pristup koji je trenutno implementiran u okviru prevodioca \strano{GCC} nema ugrađenu podršku za računanje ukupne pokrivenosti. Stoga će se ova funkcionalnost testirati nezavisno od tradicionalnog pristupa, poređenjem rezultata interfejsa \\ \strano{code\_coverage\_viewer} sa manuelno izračunatim vrednostima. Jednostavnim prebrajanjem dobijaju se vrednosti u skladu sa onima koje je prikazao \\ \strano{code\_coverage\_viewer}, koje se mogu videti i na slici \ref{fig:lucky-test-7}
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width=\textwidth]{img/lucky7-ng.png}
+  \includegraphics[width=\textwidth]{img/lucky7-ng-ng.png}
   \caption{Testiranje na programu \strano{lucky} - Korak 5c}
   \label{fig:lucky-test-7}
 \end{figure}
@@ -996,11 +1026,7 @@ Pravila za izgradnju svih programa i alata u sklopu \strano{QEMU} projekta su de
 Za razliku od jednostavnog primera kao što je program za računanje srećnog broja, sistem pravila za prevođenje, kao i sam kod \strano{QEMU}-a su znatno složeniji. Stoga je i implementacija podrške za prikupljanje i prikaz podataka u toku izvršavanja iziskivala veći stepen prilagođavanja i kvantitet izmena. 
 
 Prva iteracija je obuhvatala izmene prevođenja, odnosno dodavanje flegova za instrumentalizaciju, biblioteke \strano{libcoverage} i objektnog fajla \strano{coverage\_registration.o}. 
-Očekivana složenost ovog procesa u slučaju prosečnog, većeg projekta, je izrazito velika, iz razloga što zahteva poznavanje sistema za izgradnju softvera do najsitnijih detanja. Za prilagođavanje softvera digitalne televizije, na kojima je biblioteka \strano{libcoverage} originalno testirana, bilo je potrebno više nedelja rada, kao i asistencija stručnjaka za njihove sisteme izgradnje. Međutim, planski i ciljani odabir upravo \strano{QEMU}-a za ovo testiranje, je dosta redukovao vreme potrebno za prvu iteraciju prilagođavanja. Već ugrađena podrška za statičku instrumentalizaciju na kraju izvršavanja je poslužila kao dobar šablon za oponašanje, koji je nadomestio nedostatak poznavanja sistema. 
-
-Po ugledu na opciju: \kod{--enable gcov}, u skriptu za konfigurisanje je uvedena nova opcija: \kod{--enable-runtime-gcov}, koja takođe uslovljava uključivanje flegova za instrumentalizaciju u toku prevođenja izvornog fajla do objektnog, ali u proces linkovanja umesto njih uslovljava prisustvo dinamičke biblioteke \strano{libcoverage} i objektnog fajla za registraciju signala. Ispisivanje odgovarajućih vrednosti u konfiguracioni fajl: \strano{config\_host.mak} urađen je identično kao u slučaju postojeće opcije \kod{--enable gcov}. 
-
-Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikupljanja podataka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure}, prikazane su u okviru listinga \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su u okviru listinga \ref{qemu-diff-2}. \\
+Očekivana složenost ovog procesa u slučaju prosečnog, većeg projekta, je izrazito velika, iz razloga što zahteva poznavanje sistema za izgradnju softvera do najsitnijih detanja. Za prilagođavanje softvera digitalne televizije, na kojima je biblioteka \strano{libcoverage} originalno testirana, bilo je potrebno više nedelja rada, kao i asistencija stručnjaka za njihove sisteme izgradnje. Međutim, planski i ciljani odabir upravo \strano{QEMU}-a za ovo testiranje, je dosta redukovao vreme potrebno za prvu iteraciju prilagođavanja. Već ugrađena podrška za statičku instrumentalizaciju na kraju izvršavanja je poslužila kao dobar šablon za oponašanje, koji je nadomestio nedostatak poznavanja sistema. \\
 
 \begin{lstlisting}[caption={Izmene skripte \strano{configure}},frame=single, label=qemu-diff-1]
 diff --git a/configure b/configure
@@ -1044,7 +1070,8 @@ diff --git a/configure b/configure
 if test "$docker" != "no"; then
 \end{lstlisting}
 
-\newpage
+Po ugledu na opciju: \kod{--enable gcov}, u skriptu za konfigurisanje je uvedena nova opcija: \kod{--enable-runtime-gcov}, koja takođe uslovljava uključivanje flegova za instrumentalizaciju u toku prevođenja izvornog fajla do objektnog, ali u proces linkovanja umesto njih uslovljava prisustvo dinamičke biblioteke \strano{libcoverage} i objektnog fajla za registraciju signala. Ispisivanje odgovarajućih vrednosti u konfiguracioni fajl: \strano{config\_host.mak} urađen je identično kao u slučaju postojeće opcije \kod{--enable gcov}. \\
+
 \begin{lstlisting}[caption={Izmene fajla \strano{linux-user/exit.c}},frame=single, label=qemu-diff-2]
 diff --git a/linux-user/exit.c b/linux-user/exit.c
 
@@ -1070,6 +1097,8 @@ diff --git a/linux-user/exit.c b/linux-user/exit.c
          gdb_exit(env, code);
 \end{lstlisting}
 
+Korišćenje istih vrednosti u konfiguracionom fajlu je znatno uticalo na olakšavanje implementacije i validnost procesa instrumentalizacije uz primenu nove biblioteke, ali i proizvelo potrebu za razlikovanjem starog i novog pristupa prikupljanja podataka iz izvršavanja na nivou fajlova izvornog koda. Razlog predstavlja prisustvo koda u okviru fajla \strano{linux-user/exit.c}, koji koristi funkciju standardne biblioteke \strano{libgcov} da proširi mogućnost instrumentalizacije na neke slučajeve neregularnih izlazaka iz programa. Razlikovanje na nivou fajlova izvornog koda ostvareno je uvođenjem nove promenljiva \kod{RUNTIME\_GCOV}, koja se, u slučaju novog pristupa, prosleđuje zajedno sa instrumentalizacionim flegovima u toku prevođenja izvornog fajla do objektnog korišćenjem opcije \kod{–D}. Korišćenje funkcije standardne biblioteke \strano{libgcov} je uslovljeno nedefinisanošću ove promenljive. Kompletne izmene skripte \strano{configure}, prikazane su u okviru listinga \ref{qemu-diff-1}. Izmene fajla \strano{linux-user/exit.c} u kojima se uvodi korišćenje promenljive \kod{RUNTIME\_GCOV}, prikazane su u okviru listinga \ref{qemu-diff-2}. \\
+
 Testiranjem funkcionalnosti implementirane u toku prve iteracije, detektovana je prva smetnja u ispravnom radu podrške za prikupljanje i prikaz podataka u toku izvršavanja. Detaljnom analizom je utvrđeno da se uprkos uspešnoj registraciji funkcije \kod{coverage\_handler} kao \strano{signal-handler}-a za \strano{SIGUSR1}, k\^{o}d unutar te funkcije ne izvršava. Uzrok ove pojave je predfinisanje svih signala u kodu korisničkih emulatora \strano{QEMU}-a. Kako bi obezbedio emulaciju maksimalnog kvaliteta koja uključuje i podršku za slanje i prijem \strano{POSIX} signala, sve primljene signale \strano{QEMU} prosleđuje emuliranom korisničkom programu. Poruka karakteristična za signal \strano{SIGUSR1}, koja je ispisana tokom testiranja rezultata prve iteracije, nije dakle vodila poreklo iz \strano{QEMU}-a već iz emuliranog korisničkog programa. U cilju prevazilaženja ove prepreke, sprovedena je druga iteracija implementacije podrške za prikupljanje i prikaz podataka u toku izvršavanja, u okviru koje je osmišljen i realizovan novi algoritam za prijem i obradu signala instrumentalizovane verzije \strano{QEMU}-a. 
 
 Promena konkretnog signala ne bi proizvela drugačije rezultate, usled maksimalne pokrivenosti mehanizma prosleđivanja, dok bi promena tehnike komunikacije sa procesima isuviše negativno uticala na vreme i složenost razvoja. Stoga je potraga za rešenjem okrenuta ka kodu \strano{QEMU}-a. Sprovedena je nova analiza dokumentacije i izvornog koda, tokom koje je izvršena lokalizacija funkcije za prijem i obradu signala i utvrđen mehanizm njenog rada. Definisanje jedinstvenog \strano{signal-handlera} za sve signale, pod nazivom: \kod{host\_signal\_handler}, obavlja se u fajlu izvornog koda: \strano{linux-user/signal.c}. 
@@ -1079,7 +1108,11 @@ Na formiranje nove ideje uticalo je posmatranje argumentata funkcije \kod{host\_
 
 U okviru zaglavlja \strano{signal.h}, nalazi se više funkcija koje se mogu koristiti za slanje signala. Jednostavniji od ponuđenih mehanizama, slanje signala bez dodatnih informacija funkcijom \kod{kill}, implementiran je u okviru interfejsa \strano{code\_coverage\_viewer} kao rešenje koje zadovoljava očekivane funkcionalne zahteve. Sa druge strane, u cilju mogućnosti emuliranja potpuno proizvoljnog programa, koji može komunicirati i naprednijim mehanizmom, slanjem signala sa dodatnim informacijama funkcijom \kod{sigqueue}, trenutna implementacija \strano{QEMU}-a sadrži ugrađenu podršku i za prosleđivanje poruke poslate sa signalom. Sadržaj poruke je predstavljen jedinstvenom celobrojnom vrednošću i/ili pokazivačem na strukturu u memoriji proizvoljnog tipa, a čuva se posebnom polju strukture tipa \kod{siginfo\_t}: uniji \kod{sigval}. Korisnički emulatori \strano{QEMU}-a u regularnom slučaju ne vrše čitanje i obradu nijedne informacije po prijemu signala, što pruža dovoljan prostor za nadogradnju \strano{signal-handler}-a u fazi između prijema i prosleđivanja. Pozitivna vrednost promenljive \kod{RUNTIME\_GCOV}, koja se prosleđuje prilikom prevođenja u slučaju instrumentalizacije novim pristupom, uslovljava čitanje vrednosti broja signala i prateće poruke i dodatnu akciju u slučaju predefinisane kombinacije za prikupljanje podataka iz izvršavanja: signal \strano{SIGUSR1} i tajna poruka: 45949. Specijalna celobrojna vrednost 45949 je dobijena iz poruke \kod{call drew\_coverage} kombinacijom \strano{md5} algoritma za heširanje i osnovnih aritmetičkih operacija. Kompletne izmene koda \strano{QEMU}-a u sklopu druge iteracije implementacije, prikazane su, u okviru listinga \ref{qemu-diff-3}.
 
-\newpage
+Prednost u odnosu na inicijalni plan se ogleda u znatnoj redukciji ograničenja mogućnosti instrumentalizovane verzije emulatora. Gornje ograničenje broja različitih signala je značajno manje od maksimalne celobrojne vrednosti koja se može smestiti u promenljivu tipa \kod{int}. Pored toga, verovatnoća slučaja upotrebe emuliranja korisničkog programa koji koristi tačno ovu kombinaciju je znatno manja nego u slučaju bezuslovne upotrebe signala \strano{SIGUSR1}. Iznimno, podaci iz izvršavanja su ipak namenjeni i potrebni isključivo razvijaocima \strano{QEMU} projekta. Stoga i ako dođe do pojave ekstremnog slučaja upotrebe na koga utiče ovo minimalno ograničenje, razvojni tim poseduje dovoljno znanja i iskustva da promeni korišćeni signal i/ili poruku. 
+
+Izmenom okidača za ispis podataka iz izvršavanja u fajlove \strano{gcda}, došlo je do nekompatibilnosti interfejsa \strano{code\_coverage\_viewer} i programa instrumentalizovane verzije \strano{QEMU} skupa emulatora. 
+
+Prevazilaženje ove prepreke ostvareno je kreiranjem posredničkog programa, sa ulaznim interfejsom kompatibilnim mehanizmu \strano{code\_coverage\_viewer}-a, odnosno prijemu signala bez poruke, i izlaznim interfejsom kompatibilnim \strano{QEMU}-u, odnosno slanju signala sa porukom. Program nosi naziv: \strano{messanger}, što simbolizuje njegovu ulogu glasnika između novog grafičkog interfejsa i \strano{QEMU}-a. \\
 
 \begin{lstlisting}[caption={Izmene fajla \strano{linux-user/signal.c}} ,frame=single, label=qemu-diff-3]
 diff --git a/linux-user/signal.c b/linux-user/signal.c
@@ -1116,7 +1149,7 @@ diff --git a/linux-user/signal.c b/linux-user/signal.c
      trace_user_host_signal(env, host_signum, sig);
 \end{lstlisting}
 
-Prednost u odnosu na inicijalni plan se ogleda u znatnoj redukciji ograničenja mogućnosti instrumentalizovane verzije emulatora. Gornje ograničenje broja različitih signala je značajno manje od maksimalne celobrojne vrednosti koja se može smestiti u promenljivu tipa \kod{int}. Pored toga, verovatnoća slučaja upotrebe emuliranja korisničkog programa koji koristi tačno ovu kombinaciju je znatno manja nego u slučaju bezuslovne upotrebe signala \strano{SIGUSR1}. Iznimno, podaci iz izvršavanja su ipak namenjeni i potrebni isključivo razvijaocima \strano{QEMU} projekta. Stoga i ako dođe do pojave ekstremnog slučaja upotrebe na koga utiče ovo minimalno ograničenje, razvojni tim poseduje dovoljno znanja i iskustva da promeni korišćeni signal i/ili poruku. \\
+\newpage
 
 \begin{lstlisting}[caption={Kod u okviru fajla \strano{messanger.c}} ,frame=single, label=qemu-diff-4]
 #include <stdio.h>                                                       
@@ -1146,11 +1179,6 @@ int main(int argc, char**argv){
 	return 0;
 }
 \end{lstlisting}
-
-
-Izmenom okidača za ispis podataka iz izvršavanja u fajlove \strano{gcda}, došlo je do nekompatibilnosti interfejsa \strano{code\_coverage\_viewer} i programa instrumentalizovane verzije \strano{QEMU} skupa emulatora. 
-
-Prevazilaženje ove prepreke ostvareno je kreiranjem posredničkog programa, sa ulaznim interfejsom kompatibilnim mehanizmu \strano{code\_coverage\_viewer}-a, odnosno prijemu signala bez poruke, i izlaznim interfejsom kompatibilnim \strano{QEMU}-u, odnosno slanju signala sa porukom. Program nosi naziv: \strano{messanger}, što simbolizuje njegovu ulogu glasnika između novog grafičkog interfejsa i \strano{QEMU}-a. 
 
 Program messanger se pokreće sa jednim argumentom komandne linije koji predstavlja identifikator instrumentalizovanog pokrenutog \strano{QEMU} emulatora kome treba preneti poruku. Nakon registracije \strano{signal-handler}-a za \strano{SIGUSR1}, \strano{messanger} prelazi u stanje čekanja. Po prijemu odgovarajućeg signala, emituje se signal sa porukom 45494, koji uslovljava poziv funkcije \kod{drew\_coverage} u emulatoru sa identifikatorom iz argumenta komandne linije. Kod posredničkog programa, pisan u programskom jeziku C, prikazan je u okviru listinga \ref{qemu-diff-4}.
 
