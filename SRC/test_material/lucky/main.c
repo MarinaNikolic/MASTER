@@ -33,12 +33,9 @@ int main(){
 			}
 			printf("Enter your date of birth: ");
 			scanf("%d", &date);
-			while((month==2 && (date<1 || date >29)) || \
-			((month==4 || month==6 || month==9 || month==11) && (date<1 || date >30)) || \
-			((month==1 || month==3 || month==5 || month==7 || month==8 || \
-			month==10 || month==12) && (date<1 || date >31)) || \
-			(((year%400)!=0 && ((year%4)!=0 || (year%100)==0)) && month==2 && date==29)){
-				printf("Please enter correct date of %d. month and %d. year: ", month, year);
+			while(is_date_incorrect(date, month, year)){
+				printf("Please enter correct date of %d. month and %d. year: ", \
+					month, year);
 				scanf("%d", &date);
 			}	
 			int lucky = calculate_lucky_number(date,month,year);
