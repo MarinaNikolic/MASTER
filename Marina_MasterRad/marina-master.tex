@@ -53,7 +53,7 @@
 % Naslov teze na srpskom jeziku (u odabranom pismu)
 \naslov{Prikupljanje i prikaz podataka o izvršavanju programa}
 % Godina u kojoj je teza predana komisiji
-\godina{2018}
+\godina{2019}
 % Ime i afilijacija mentora (u odabranom pismu)
 \mentor{dr Milena \textsc{Vujošević Janičić}, docent\\ Univerzitet u Beogradu, Matematički fakultet}
 % Ime i afilijacija prvog člana komisije (u odabranom pismu)
@@ -153,7 +153,8 @@ Međutim, pored izuzetnih performansi, trenutna implementacija prikupljanja poda
  
 Iz tih razloga je, u okviru ovog rada, implementirana podrška za prikupljanje podataka iz izvršavanja u toku rada programa, proširivanjem mogućnosti programskog prevodioca \strano{GCC}. Pored toga, kreiran je i novi grafički interfejs za prikaz tih podataka, koji nadomešćuje nedostatke alata \strano{gcov} u pogledu preglednosti, informativnosti na nivou većem od pojedinačnog fajla izvornog koda, kao i ukupnog kvaliteta korisničkog doživljaja. Testiranje implementiranog rešenja sprovedeno je nad kompleksnim softverom koji služi za emuliranje različitih arhitektura, pod nazivom \strano{QEMU} \cite{QEMU}. 
 
-Drugo poglavlje rada predstavlja uvod u analizu programa, njene vrste i tehnike. Posebna pažnja posvećena je tehnici dinamičke analize pod nazivom profajliranje, koja obuhvata proces instrumentalizacije koda, prikupljanja i obrade podataka iz izvršavanja programa. Definisani su i pojam i značaj pokrivenosti koda, kao jedne od najvažnijih informacija koja se izvodi iz tih podataka. Počevši od narednog poglavlja vrši se restrikcija na programski prevodilac \strano{GCC}. U okviru trećeg poglavlja, opisana je detaljno postojeća implementacija prikupljanja podataka i demonstrirarane mogućnosti alata \strano{gcov}, dok se u okviru četvrtog poglavlja nalaze detalji implementacije unapređenja koje predstavlja osnovu ovog rada: proširenje mogućnosti programskog prevodioca \strano{GCC} u cilju dobijanja podataka iz izvršavanja pre kraja programa i kreiranje novog grafičkog interfejsa za njihov prikaz. Peto poglavlje posvećeno je procesima testiranja i analize performansi, najpre nad jednim jednostavnijim primerom, a zatim i nad alatom \strano{QEMU}.
+Drugo poglavlje rada predstavlja uvod u analizu programa, njene vrste i tehnike. Posebna pažnja posvećena je tehnici dinamičke analize pod nazivom profajliranje, koja obuhvata proces instrumentalizacije koda, prikupljanja i obrade podataka iz izvršavanja programa. Definisani su i pojam i značaj pokrivenosti koda, kao jedne od najvažnijih informacija koja se izvodi iz tih podataka. Počevši od narednog poglavlja vrši se restrikcija na programski prevodilac \strano{GCC}. U okviru trećeg poglavlja, opisana je detaljno postojeća implementacija prikupljanja podataka i demonstrirarane mogućnosti alata \strano{gcov}, dok se u okviru četvrtog poglavlja nalaze detalji implementacije unapređenja koje predstavlja osnovu ovog rada: proširenje mogućnosti programskog prevodioca \strano{GCC} u cilju dobijanja podataka iz izvršavanja pre kraja programa i kreiranje novog grafičkog interfejsa za njihov prikaz. Peto poglavlje posvećeno je procesima testiranja i analize performansi, najpre nad jednim jednostavnijim primerom, a zatim i nad alatom \strano{QEMU}. Softversko rešenje za prikupljanje i prikaz podataka iz izvršavanja u toku rada programa je predstavljeno i na konferencjiji \strano{ETRAN}, 2017. godine, u vidu kraćeg naučnog rada dostupnog na: \\ \url{https://www.etran.rs/common/pages/proceedings/ETRAN2017/RT/IcETRAN2017\_paper\_RT2\_1.pdf}
+.
 
 % ------------------------------------------------------------------------------
 \chapter{Analiza performansi programa}
@@ -490,7 +491,7 @@ Implementacija unapređenja prikupljanja i prikaza podataka iz izvršavanja prog
 \item Implementacija novog grafičkog interfejsa za prikaz podataka, u kome je bezbedna i višegodišnjim korisničkim iskustvom potvrđena osnova, alat \strano{gcov}, nadograđena jednostavnim, preglednim, korisnički prilagođenom interfejsom sa povišenom informativnošću.
 \end{enumerate}
 U narednom tekstu biće detaljno opisane implementacije obe celine, a celokupan k\^{o}d potreban za njihovu izgradnju je dostupan u okviru \strano{git} repozitorijuma na adresi:\\
-\strano{https://github.com/MarinaNikolic/MASTER/tree/master/SRC}
+\url{https://github.com/MarinaNikolic/MASTER/tree/master/SRC}
 
 
 \section{Biblioteka libcoverage}
@@ -1535,7 +1536,7 @@ Dalji razvoj bi mogao ići u pravcu proširivanja funkcionalnosti na druge prevo
 % Biografija kandidata
 \begin{biografija}
   \textbf{Marina Nikolić} (\emph{Sombor,
-    17. decembar 1992. }) je ... 
+    17. decembar 1992. }) je diplomirani matematičar za računarstvo i informatiku Univerziteta u Beogradu i trenutno radi kao softverski inženjer u kompaniji RT-RK. Završila je Četvrtu beograsku gimnaziju 2012. godine kao dobitnik Vukove diplome na osnovu odličnog uspeha i ostvarenih rezultata na takmičenjima iz matematike i fizike. Iste godine upisala je Matematički fakultet  u Beogradu, smer: matematika, modul: računarstvo i informatika, i diplomirala u julu 2017. godine sa prosečnom ocenom 7.75. Poslednju godinu studija provela je kao stipendista novosadske kompanije koja proizvodi i održava softver za uređaje sa ugrađenim računarom, pod nazivom RT-RK. Po završetku osnovnih akademskih studija upisala je master studije, i u toku akademske 2017-2018 godine položila sve ispite predviđene planom i programom master studija, sa prosečnom ocenom 10.0. U julu 2017. se zaposlila u kompaniji RT-RK, u timu koji održava softver za instrumentalizaciju operativnih sistema mrežnih uređaja koje proizvodi američka koorporacija pod nazivom CISCO. Trenutno radi u istom timu i usavršava svoje znanje u oblasti računarskih mreža, operativnih sistema i programskih prevodioca. 
 \end{biografija}
 % ------------------------------------------------------------------------------
 
