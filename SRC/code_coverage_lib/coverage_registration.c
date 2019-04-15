@@ -15,7 +15,7 @@ void coverage_handler(int signo){
 __attribute__((constructor))
 void coverage_signal_registry(){
     printf("Registrating signal SIGUSR1 for coverage data dump...\n");
-    signal(SIGUSR1,coverage_handler);
+    signal(COVERAGE_SIGNAL,coverage_handler);
 }
 
                                                                          

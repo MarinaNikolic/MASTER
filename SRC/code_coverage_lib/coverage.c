@@ -497,32 +497,6 @@ void drew_coverage(){
   /* Find the totals for this execution.  */
   memset (&this_program, 0, sizeof (this_program));
 
-/* OVO ZA SAD NE!
-  /* For all object files in gcov info list... */
-/*  for (gi_ptr = gcov_list; gi_ptr; gi_ptr = gi_ptr->next) {
-    /* For every function... */
-/*   for (r_ix = 0; r_ix < gi_ptr->n_functions; r_ix++){ 
-          ci_ptr = gi_ptr->functions[r_ix]->ctrs;
-          /* For every counter of that function... */
-/*      for (t_ix = 0; t_ix < ci_ptr->num; t_ix++) {
-            /* Refresh the value of counter */
- /*           cs_ptr = &this_program.ctrs[t_ix];
-            cs_ptr->num += ci_ptr->num;
-/*            for (c_num = 0; c_num < ci_ptr->num; c_num++)
-              {
-                /* and refresh data in summaries... */
-/*                cs_ptr->sum_all += ci_ptr->values[c_num];
-                if (cs_ptr->run_max < ci_ptr->values[c_num])
-              cs_ptr->run_max = ci_ptr->values[c_num];
-                }
-              ci_ptr++;         
-      }
-    }
-  }
-
-*/
-
-
   /* Get file name relocation prefix.  Non-absolute values are ignored. */
   gcov_prefix = getenv("GCOV_PREFIX");
 
@@ -594,30 +568,6 @@ void drew_coverage(){
       else
         strcpy (gi_filename_up, gi_ptr->filename);
 
-      /* Totals for this object file.  */
-
-
-/* OVO ZA SAD NE
-    /* For every function... */
-  /*  for (r_ix = 0; r_ix < gi_ptr->n_functions; r_ix++){ 
-          ci_ptr = gi_ptr->functions[r_ix]->ctrs;
-          /* For every counter of that function... */
-  /*    for (t_ix = 0; t_ix < ci_ptr->num; t_ix++) {        
-            /* Refresh the value of counter */
-   /*         cs_ptr = &this_object.ctrs[t_ix];
-            cs_ptr->num += ci_ptr->num;
-   /*         for (c_num = 0; c_num < ci_ptr->num; c_num++)
-              {
-                /* and refresh data in summaries... */ 
-     /*           cs_ptr->sum_all += ci_ptr->values[c_num];
-    /*            if (cs_ptr->run_max < ci_ptr->values[c_num])
-              cs_ptr->run_max = ci_ptr->values[c_num];
-                }
-              ci_ptr++;              
-      }
-    }
-    
-*/
       c_ix = 0;
       /* Write in VALUES values of all counters as an array of arrays */
       for (t_ix = 0; t_ix < gi_ptr->n_functions; t_ix++){
